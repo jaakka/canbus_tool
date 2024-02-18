@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         #self.button.clicked.connect(self.laite_loyty)
         
         self.label = QLabel(self)
-        pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\canbustyokalu.jpg")
+        pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_tool.jpg")
         self.label.setPixmap(pixmap)
         self.label.setGeometry(40, -30, pixmap.width(), pixmap.height())
 
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         self.txt.setGeometry(10,170,300,40)
         self.txt.setStyleSheet("color: white;")
 
-        self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "leikattutopseli.png")))
+        self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_adapter.png"))
 
         self.palkki = QProgressBar(self) 
         self.palkki.setValue(99)
