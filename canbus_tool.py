@@ -49,10 +49,11 @@ class MainWindow(QMainWindow):
         self.show()
 
         self.laite = -1
+        self.mode = 0
         
-        #ajastin_etsinnalle = QTimer(self)
-        #ajastin_etsinnalle.timeout.connect(self.etsinta)
-        #ajastin_etsinnalle.start(5000)
+        ohjelmakierto = QTimer(self)
+        ohjelmakierto.timeout.connect(self.ohjelma_looppi)
+        ohjelmakierto.start() #tän sisälle voi laittaa myös ajan
 
         QTimer.singleShot(1000, self.etsinta)
         
@@ -91,13 +92,12 @@ class MainWindow(QMainWindow):
 
     def nopeus_valittu(self):
         self.dropdown.hide()
-        mode = 0
         try:
             while True:
                 if self.ser.in_waiting > 0:
                     data = self.ser.readline().decode('utf-8').rstrip()
                     #print(data)
-                    if mode == 0 and "odottaa" in data:  # odottaa fail valmiina
+                    if self.mode == 0 and "odottaa" in data:  # odottaa fail valmiina
                         select = int(self.dropdown.currentIndex())
                         if select == 2:
                             print("CAN_100KBPS valittiin")
@@ -108,20 +108,20 @@ class MainWindow(QMainWindow):
                         else:
                             print("CAN_83K3BPS valittiin")
                             self.ser.write(b'CAN_83K3BPS') 
-                        mode = 1 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
+                        self.mode = 1 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
 
-                    elif mode == 1:
+                    elif self.mode == 1:
                         if "valmiina" in data:  # odottaa fail valmiina
-                            mode = 2 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
+                            self.mode = 2 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
                             print("Valmiina toimintaan")
                             self.paavalikko()
                             break
                         elif "fail" in data:
                             print("Määritys ei onnistunut")
                             self.virhekoodi("VäyläTyökalun määritys epäonnistui.")
-                            mode = 3 #määritys epäonnistui
+                            self.mode = 3 #määritys epäonnistui
                             break
-                    elif mode == 2:
+                    elif self.mode == 2:
                         saatu_data = data.split()
                         print(saatu_data)
         except:
@@ -139,6 +139,10 @@ class MainWindow(QMainWindow):
         self.txt.setGeometry(10,5,300,50)
         self.dropdown.hide()
         self.label.hide()
+
+    def ohjelma_looppi(self):
+        if self.mode == 2:
+            print("test")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
