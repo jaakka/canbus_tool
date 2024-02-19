@@ -8,9 +8,13 @@ from PySide6.QtGui import QPixmap,QIcon
 import os
 import threading
 
+
 tyotila = 0
 laitteen_portti = "COM3"
+ser = serial
+
 class MainWindow(QMainWindow):
+    global ser #mahdollistaa saman yhteyden käytön luoka ulkopuolella 
     global tyotila
     global laitteen_portti
 
@@ -38,12 +42,12 @@ class MainWindow(QMainWindow):
 
         self.btn_simu_on = QPushButton("Päälle",self)
         self.btn_simu_on.setGeometry(10,100,100,20)
-        #self.btn_simu_on.connect(self.simu_on)
+        self.btn_simu_on.clicked.connect(self.simu_on)
         self.btn_simu_on.hide()
 
         self.btn_simu_off = QPushButton("Pois",self)
         self.btn_simu_off.setGeometry(110,100,100,20)
-        #self.btn_simu_off.connect(self.simu_off)
+        self.btn_simu_off.clicked.connect(self.simu_off)
         self.btn_simu_off.hide()
     
 
@@ -85,28 +89,33 @@ class MainWindow(QMainWindow):
     def simu_on(self):
         global tyotila
         print("Pyydettiin asettamaan simulaattori päälle.")
+        self.btn_simu_on.setDisabled(True)
+        self.btn_simu_off.setDisabled(False)
         tyotila = 1
 
     def simu_off(self):
         global tyotila
         print("Pyydettiin asettamaan simulaattori pois.")
+        self.btn_simu_off.setDisabled(True)
+        self.btn_simu_on.setDisabled(False)
         tyotila = 2
         
     def etsinta(self):
+        global ser
         global laitteen_portti
         laite_ehdokkaat = self.etsi_mahdolliset()
         if len(laite_ehdokkaat) > 0:
             for i in range(len(laite_ehdokkaat)):
-                self.ser = serial.Serial(laite_ehdokkaat[i], baudrate=115200)
+                ser = serial.Serial(laite_ehdokkaat[i], baudrate=115200)
                 time.sleep(1)  # Odota vastausta
-                response = self.ser.readline().decode('utf-8').rstrip() 
+                response = ser.readline().decode('utf-8').rstrip() 
                 if "odottaa" in response:
                     self.laite = laite_ehdokkaat[i]
                     laitteen_portti = self.laite #asetetaan globaaliin muuttujaan laite
                     print("Laite loydetty!")
                     break
                 print("Yhteys katkaistu porttiin "+str(laite_ehdokkaat[i]))
-                self.ser.close() # jossei laitetta loydy katkaistaan yhteys
+                ser.close() # yhteys katkeaa vain jossei laitetta loydy
             if self.laite != -1:
                 # ei tartte enää alottaa pitääs ollaself.ser = serial.Serial(self.laite, baudrate=115200) #aloitetaan yhteys
                 print("Yhdistetään laitteeseen "+str(self.laite))
@@ -129,29 +138,33 @@ class MainWindow(QMainWindow):
 
     def nopeus_valittu(self):
         self.dropdown.hide()
+        global ser
         try:
             while True:
-                if self.ser.in_waiting > 0:
-                    data = self.ser.readline().decode('utf-8').rstrip()
+                if ser.in_waiting > 0:
+                    data = ser.readline().decode('utf-8').rstrip()
                     #print(data)
                     if self.mode == 0 and "odottaa" in data:  # odottaa fail valmiina
                         select = int(self.dropdown.currentIndex())
                         if select == 2:
                             print("CAN_100KBPS valittiin")
-                            self.ser.write(b'CAN_100KBPS')
+                            ser.write(b'CAN_100KBPS')
+                            time.sleep(2)
                         elif select == 3:
                             print("CAN_500KBPS valittiin")
-                            self.ser.write(b'CAN_500KBPS')
+                            ser.write(b'CAN_500KBPS')
+                            time.sleep(2)
                         else:
                             print("CAN_83K3BPS valittiin")
-                            self.ser.write(b'CAN_83K3BPS') 
+                            ser.write(b'CAN_83K3BPS')
+                            time.sleep(2) 
                         self.mode = 1 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
 
                     elif self.mode == 1:
                         if "valmiina" in data:  # odottaa fail valmiina
                             self.mode = 2 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
                             print("Valmiina toimintaan")
-                            self.ser.close() #katkaistaan yhteys koska muodostetaan se uudelleen myöhemmin
+                            #self.ser.close() #katkaistaan yhteys koska muodostetaan se uudelleen myöhemmin
                             self.paavalikko()
                             break
                         elif "fail" in data:
@@ -161,6 +174,7 @@ class MainWindow(QMainWindow):
                             break
         except:
             self.virhekoodi("Yhteys VäyläTyökaluun menetettiin.")
+
 
     def paavalikko(self):
         nopeus = self.dropdown.currentText()
@@ -174,6 +188,7 @@ class MainWindow(QMainWindow):
         print("tyotila vaihtua 3")
         global tyotila
         tyotila = 3
+        
 
     def virhekoodi(self,virhekoodi):
         self.txt.setText("Tapahtui virhe! \n virhekoodi: "+str(virhekoodi))
@@ -197,36 +212,28 @@ def ikkuna_teht():
 def serial_teht():
     global tyotila
     global ikkuna_tehtava
-    global laitteen_portti
+    global ser
 
-    yhdistetty_lukiaan = False
     while True:
-        
-        # jos yhteyttä ei ole ja tyotila muuttuu, eli ikkunamenee päävalikkoon ja laite löydetty
-        if tyotila != 0 and yhdistetty_lukiaan == False: 
-            ser = serial.Serial(laitteen_portti, baudrate=115200)
-            yhdistetty_lukiaan = True
-            print("Reaaliaikainen yhteys muodostettu.")
-
         # jos ikkuna suljetaan suljetaan tämäkin
         if ikkuna_tehtava.is_alive() == False:
             print("Serial tehtävä pysäytettiin koska ikkuna suljettiin.")
-            if yhdistetty_lukiaan:
-                ser.close() 
+            ser.close() 
             break
-
-        if yhdistetty_lukiaan:
-            
-            if tyotila == 1:
-                pass
-
-            if tyotila == 2:
-                pass
-
-            if tyotila == 3:
-                pass
-
-    
+        if tyotila == 1: #simulaattori päälle
+            ser.write(b'simu_on\n')
+            print("Pyydettiin simulaattoria käynistymään")
+            time.sleep(2)
+            tyotila = 3
+        if tyotila == 2: #simulaattori poispäältä
+            ser.write(b'simu_off\n')
+            print("Pyydettiin simulaattoria sammumaan")
+            time.sleep(2)
+            tyotila = 3
+        if tyotila == 3: #väylän luku täysiä
+            data = ser.readline().decode('utf-8').rstrip()
+            saatu_data = data.split()
+            print(saatu_data)   
 
 if __name__ == "__main__":
     ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')
