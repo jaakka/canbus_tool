@@ -14,6 +14,51 @@ laitteen_portti = "COM3"
 ser = serial
 total_msg = 0
 total_msg_top = 0
+vaylanluku = True
+
+pid_lista = []
+data_lista = []
+data_update_lista = []
+
+old_data1 = []
+old_data2 = []
+old_data3 = []
+old_data4 = []
+
+def etsi_pid(pid):
+    for i in range(len(pid_lista)):
+        if pid_lista[i] == pid:
+            return i
+    return -1
+
+def lista_update(index,kohta,data):
+    old_data4[index][kohta] = old_data3[index][kohta]
+    old_data3[index][kohta] = old_data2[index][kohta]
+    old_data2[index][kohta] = old_data1[index][kohta]
+    old_data1[index][kohta] = data_lista[index][kohta]
+    data_lista[index][kohta] == data
+
+def kasittele_data(pid,data):
+    index = etsi_pid(pid)
+    if index == -1:
+        pid_lista.append(pid)
+        data_lista.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        old_data1.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        old_data2.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        old_data3.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        old_data4.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        data_update_lista.append([True,True,True,True,True,True,True,True])
+        index = len(pid_lista)-1
+
+    i=0
+    while i < 8:
+        if len(data)>i:
+            if data_lista[index][i] == data[i]:
+                data_update_lista[index][i] = False # ei uutta dataa
+            else:
+                lista_update(index,i,data[i])
+                data_update_lista[index][i] = True # uus data
+        i+=1
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -34,21 +79,35 @@ class MainWindow(QMainWindow):
               #"background-color: #F0F0F0;"
               #"border: 1px solid #B0B0B0;}")
         
-        self.simu_txt = QLabel("Aktivoi simulointi (ei vaikuta autoon)",self)
-        self.simu_txt.setGeometry(15,70,300,40)
+        self.simu_txt = QLabel("Väylän simulointi",self)
+        self.simu_txt.setGeometry(15,70,300,20)
         self.simu_txt.hide()
 
         self.btn_simu_on = QPushButton("Päälle",self)
-        self.btn_simu_on.setGeometry(10,100,100,20)
+        self.btn_simu_on.setGeometry(120,70,80,20)
         self.btn_simu_on.clicked.connect(self.simu_on)
         self.btn_simu_on.hide()
 
         self.btn_simu_off = QPushButton("Pois",self)
-        self.btn_simu_off.setGeometry(110,100,100,20)
+        self.btn_simu_off.setGeometry(200,70,80,20)
         self.btn_simu_off.clicked.connect(self.simu_off)
         self.btn_simu_off.hide()
         self.btn_simu_off.setDisabled(True)
-    
+
+        self.vayla_txt = QLabel("Väylän lukeminen",self)
+        self.vayla_txt.setGeometry(15,90,300,20)
+        self.vayla_txt.hide()
+
+        self.btn_vayla_on = QPushButton("Päälle",self)
+        self.btn_vayla_on.setGeometry(120,90,80,20)
+        self.btn_vayla_on.clicked.connect(self.vayla_on)
+        self.btn_vayla_on.setDisabled(True)
+        self.btn_vayla_on.hide()
+
+        self.btn_vayla_off = QPushButton("Pois",self)
+        self.btn_vayla_off.setGeometry(200,90,80,20)
+        self.btn_vayla_off.clicked.connect(self.vayla_off)
+        self.btn_vayla_off.hide()
 
         self.label = QLabel(self)
         pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_tool.jpg")
@@ -85,9 +144,23 @@ class MainWindow(QMainWindow):
         
         QTimer.singleShot(1000, self.etsinta)
     
+    def vayla_on(self):
+        print("Väylä painettu päälle")
+        self.btn_vayla_on.setDisabled(True)
+        self.btn_vayla_off.setDisabled(False)
+        global vaylanluku
+        vaylanluku = True
+
+    def vayla_off(self):
+        self.btn_vayla_off.setDisabled(True)
+        self.btn_vayla_on.setDisabled(False)
+        print("Väylä painettu pois päältä")
+        global vaylanluku
+        vaylanluku = False
+
     def aika_tekstin_paivittaja(self):
         nopeus = self.dropdown.currentText()
-        self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s")
+        self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s \n Laitetunnisteita löytynyt: "+str(len(pid_lista))+"kpl")
         QTimer.singleShot(100, self.aika_tekstin_paivittaja)
 
     def simu_on(self):
@@ -182,18 +255,20 @@ class MainWindow(QMainWindow):
 
     def paavalikko(self):
         nopeus = self.dropdown.currentText()
-        self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: 0 Msg/s")
-        self.txt.setGeometry(10,5,300,50)
+        self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: 0 Msg/s \n Laitetunnisteita löytynyt: 0kpl")
+        self.txt.setGeometry(10,5,300,65)
         self.dropdown.hide()
         self.label.hide()
         self.simu_txt.show()
         self.btn_simu_on.show()
         self.btn_simu_off.show()
-        print("tyotila vaihtua 3")
+        self.btn_vayla_on.show()
+        self.btn_vayla_off.show()
+        self.vayla_txt.show()
         global tyotila
         tyotila = 3
         QTimer.singleShot(100, self.aika_tekstin_paivittaja)
-        
+      
 
     def virhekoodi(self,virhekoodi):
         self.txt.setText("Tapahtui virhe! \n virhekoodi: "+str(virhekoodi))
@@ -225,6 +300,13 @@ def aika_loop():
         total_msg_top = total_msg
         total_msg = 0
         time.sleep(1)
+
+def muunna_data(data):
+    palautettava_data = []
+    for i in range(len(data)):
+        if i > 2: # ['(0)ID:', '(1)13', '(2)DATA:', '0x61', '0x4d', '0xc', '0x3b', '0x62', '0x49', '0x4c', '0x34']
+            palautettava_data.append(data[i])
+    return palautettava_data
 
 def serial_teht():
     global total_msg
@@ -265,8 +347,11 @@ def serial_teht():
             if ser.in_waiting > 0:
                 data = ser.readline().decode('utf-8').rstrip()
                 total_msg+=1
-                saatu_data = data.split()
-                print(saatu_data)
+                if vaylanluku:
+                    saatu_data = data.split()
+                    if len(saatu_data)>3:
+                        kasittele_data(saatu_data[1], muunna_data(saatu_data))
+                    print(saatu_data)
 
 if __name__ == "__main__":
     ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')
