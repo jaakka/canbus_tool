@@ -6,8 +6,14 @@ from PySide6.QtWidgets import QProgressBar, QApplication, QMainWindow, QComboBox
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap,QIcon
 import os
+import threading
 
+tyotila = 0
+laitteen_portti = "COM3"
 class MainWindow(QMainWindow):
+    global tyotila
+    global laitteen_portti
+
     def __init__(self):
         super().__init__()
         self.setGeometry(600,200,320,240)
@@ -21,7 +27,26 @@ class MainWindow(QMainWindow):
         #self.button = QPushButton("TEST",self)
         #self.button.setGeometry(310,0,100,20)
         #self.button.clicked.connect(self.laite_loyty)
+        #self.suomi_kentta.setStyleSheet("QLineEdit[readOnly=\"true\"] {"
+              #"color: #585858;"
+              #"background-color: #F0F0F0;"
+              #"border: 1px solid #B0B0B0;}")
         
+        self.simu_txt = QLabel("Aktivoi simulointi",self)
+        self.simu_txt.setGeometry(15,70,100,40)
+        self.simu_txt.hide()
+
+        self.btn_simu_on = QPushButton("Päälle",self)
+        self.btn_simu_on.setGeometry(10,100,100,20)
+        #self.btn_simu_on.connect(self.simu_on)
+        self.btn_simu_on.hide()
+
+        self.btn_simu_off = QPushButton("Pois",self)
+        self.btn_simu_off.setGeometry(110,100,100,20)
+        #self.btn_simu_off.connect(self.simu_off)
+        self.btn_simu_off.hide()
+    
+
         self.label = QLabel(self)
         pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_tool.jpg")
         self.label.setPixmap(pixmap)
@@ -51,13 +76,24 @@ class MainWindow(QMainWindow):
         self.laite = -1
         self.mode = 0
         
-        ohjelmakierto = QTimer(self)
-        ohjelmakierto.timeout.connect(self.ohjelma_looppi)
-        ohjelmakierto.start() #tän sisälle voi laittaa myös ajan
+        #ohjelmakierto = QTimer(self)
+        #ohjelmakierto.timeout.connect(self.ohjelma_looppi)
+        #ohjelmakierto.start() #tän sisälle voi laittaa myös ajan
 
         QTimer.singleShot(1000, self.etsinta)
+    
+    def simu_on(self):
+        global tyotila
+        print("Pyydettiin asettamaan simulaattori päälle.")
+        tyotila = 1
+
+    def simu_off(self):
+        global tyotila
+        print("Pyydettiin asettamaan simulaattori pois.")
+        tyotila = 2
         
     def etsinta(self):
+        global laitteen_portti
         laite_ehdokkaat = self.etsi_mahdolliset()
         if len(laite_ehdokkaat) > 0:
             for i in range(len(laite_ehdokkaat)):
@@ -66,6 +102,7 @@ class MainWindow(QMainWindow):
                 response = self.ser.readline().decode('utf-8').rstrip() 
                 if "odottaa" in response:
                     self.laite = laite_ehdokkaat[i]
+                    laitteen_portti = self.laite #asetetaan globaaliin muuttujaan laite
                     print("Laite loydetty!")
                     break
                 print("Yhteys katkaistu porttiin "+str(laite_ehdokkaat[i]))
@@ -114,6 +151,7 @@ class MainWindow(QMainWindow):
                         if "valmiina" in data:  # odottaa fail valmiina
                             self.mode = 2 #odotetaan että valitaan CAN_83K3BPS CAN_100KBPS tai CAN_500KBPS
                             print("Valmiina toimintaan")
+                            self.ser.close() #katkaistaan yhteys koska muodostetaan se uudelleen myöhemmin
                             self.paavalikko()
                             break
                         elif "fail" in data:
@@ -121,9 +159,6 @@ class MainWindow(QMainWindow):
                             self.virhekoodi("VäyläTyökalun määritys epäonnistui.")
                             self.mode = 3 #määritys epäonnistui
                             break
-                    elif self.mode == 2:
-                        saatu_data = data.split()
-                        print(saatu_data)
         except:
             self.virhekoodi("Yhteys VäyläTyökaluun menetettiin.")
 
@@ -133,6 +168,12 @@ class MainWindow(QMainWindow):
         self.txt.setGeometry(10,5,300,50)
         self.dropdown.hide()
         self.label.hide()
+        self.simu_txt.show()
+        self.btn_simu_on.show()
+        self.btn_simu_off.show()
+        print("tyotila vaihtua 3")
+        global tyotila
+        tyotila = 3
 
     def virhekoodi(self,virhekoodi):
         self.txt.setText("Tapahtui virhe! \n virhekoodi: "+str(virhekoodi))
@@ -144,7 +185,56 @@ class MainWindow(QMainWindow):
         if self.mode == 2:
             print("test")
 
-if __name__ == "__main__":
+def kill_task(app):
+    app.exec() 
+
+def ikkuna_teht():
+    print("tehtava ikkuna aloitettiin")
     app = QApplication(sys.argv)
     window = MainWindow()
-    sys.exit(app.exec())
+    sys.exit(kill_task(app))
+
+def serial_teht():
+    global tyotila
+    global ikkuna_tehtava
+    global laitteen_portti
+
+    yhdistetty_lukiaan = False
+    while True:
+        
+        # jos yhteyttä ei ole ja tyotila muuttuu, eli ikkunamenee päävalikkoon ja laite löydetty
+        if tyotila != 0 and yhdistetty_lukiaan == False: 
+            ser = serial.Serial(laitteen_portti, baudrate=115200)
+            yhdistetty_lukiaan = True
+            print("Reaaliaikainen yhteys muodostettu.")
+
+        # jos ikkuna suljetaan suljetaan tämäkin
+        if ikkuna_tehtava.is_alive() == False:
+            print("Serial tehtävä pysäytettiin koska ikkuna suljettiin.")
+            if yhdistetty_lukiaan:
+                ser.close() 
+            break
+
+        if yhdistetty_lukiaan:
+            
+            if tyotila == 1:
+                pass
+
+            if tyotila == 2:
+                pass
+
+            if tyotila == 3:
+                pass
+
+    
+
+if __name__ == "__main__":
+    ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')
+    serial_tehtava = threading.Thread(target=serial_teht, name='t2')
+    ikkuna_tehtava.start()
+    serial_tehtava.start()
+    ikkuna_tehtava.join()
+    serial_tehtava.join()
+    print("Kaikki säikeet lopetettu.")
+    
+    
