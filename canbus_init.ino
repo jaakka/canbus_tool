@@ -34,6 +34,7 @@ void canbus_init()
       }
       Serial.println("valmiina");
       maaritetty = true;
+      delay(3000);
     }    
     if(viesti.indexOf("makkara") != -1)
     {

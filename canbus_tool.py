@@ -8,16 +8,14 @@ from PySide6.QtGui import QPixmap,QIcon
 import os
 import threading
 
-
+test = 0
 tyotila = 0
 laitteen_portti = "COM3"
 ser = serial
+total_msg = 0
+total_msg_top = 0
 
 class MainWindow(QMainWindow):
-    global ser #mahdollistaa saman yhteyden käytön luoka ulkopuolella 
-    global tyotila
-    global laitteen_portti
-
     def __init__(self):
         super().__init__()
         self.setGeometry(600,200,320,240)
@@ -36,8 +34,8 @@ class MainWindow(QMainWindow):
               #"background-color: #F0F0F0;"
               #"border: 1px solid #B0B0B0;}")
         
-        self.simu_txt = QLabel("Aktivoi simulointi",self)
-        self.simu_txt.setGeometry(15,70,100,40)
+        self.simu_txt = QLabel("Aktivoi simulointi (ei vaikuta autoon)",self)
+        self.simu_txt.setGeometry(15,70,300,40)
         self.simu_txt.hide()
 
         self.btn_simu_on = QPushButton("Päälle",self)
@@ -49,6 +47,7 @@ class MainWindow(QMainWindow):
         self.btn_simu_off.setGeometry(110,100,100,20)
         self.btn_simu_off.clicked.connect(self.simu_off)
         self.btn_simu_off.hide()
+        self.btn_simu_off.setDisabled(True)
     
 
         self.label = QLabel(self)
@@ -83,26 +82,32 @@ class MainWindow(QMainWindow):
         #ohjelmakierto = QTimer(self)
         #ohjelmakierto.timeout.connect(self.ohjelma_looppi)
         #ohjelmakierto.start() #tän sisälle voi laittaa myös ajan
-
+        
         QTimer.singleShot(1000, self.etsinta)
     
+    def aika_tekstin_paivittaja(self):
+        nopeus = self.dropdown.currentText()
+        self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s")
+        QTimer.singleShot(100, self.aika_tekstin_paivittaja)
+
     def simu_on(self):
-        global tyotila
-        print("Pyydettiin asettamaan simulaattori päälle.")
+        print("Painettiin simulaattori päälle.")
         self.btn_simu_on.setDisabled(True)
         self.btn_simu_off.setDisabled(False)
+        global tyotila
         tyotila = 1
+        print(tyotila)
 
     def simu_off(self):
-        global tyotila
-        print("Pyydettiin asettamaan simulaattori pois.")
+        print("Painettiin simulaattori pois.")
         self.btn_simu_off.setDisabled(True)
         self.btn_simu_on.setDisabled(False)
+        global tyotila
         tyotila = 2
+        print(tyotila)
         
     def etsinta(self):
         global ser
-        global laitteen_portti
         laite_ehdokkaat = self.etsi_mahdolliset()
         if len(laite_ehdokkaat) > 0:
             for i in range(len(laite_ehdokkaat)):
@@ -111,6 +116,7 @@ class MainWindow(QMainWindow):
                 response = ser.readline().decode('utf-8').rstrip() 
                 if "odottaa" in response:
                     self.laite = laite_ehdokkaat[i]
+                    global laitteen_portti
                     laitteen_portti = self.laite #asetetaan globaaliin muuttujaan laite
                     print("Laite loydetty!")
                     break
@@ -188,6 +194,7 @@ class MainWindow(QMainWindow):
         print("tyotila vaihtua 3")
         global tyotila
         tyotila = 3
+        QTimer.singleShot(100, self.aika_tekstin_paivittaja)
         
 
     def virhekoodi(self,virhekoodi):
@@ -200,48 +207,76 @@ class MainWindow(QMainWindow):
         if self.mode == 2:
             print("test")
 
-def kill_task(app):
-    app.exec() 
 
 def ikkuna_teht():
     print("tehtava ikkuna aloitettiin")
     app = QApplication(sys.argv)
     window = MainWindow()
-    sys.exit(kill_task(app))
+    sys.exit(app.exec())
+
+
+
+def aika_loop():
+    global total_msg
+    global total_msg_top
+    while True:
+        total_msg_top = total_msg
+        total_msg = 0
+        time.sleep(1)
 
 def serial_teht():
+    global total_msg
+    global test
     global tyotila
     global ikkuna_tehtava
     global ser
-
+    write_mode = True
     while True:
-        # jos ikkuna suljetaan suljetaan tämäkin
-        if ikkuna_tehtava.is_alive() == False:
-            print("Serial tehtävä pysäytettiin koska ikkuna suljettiin.")
-            ser.close() 
-            break
+
+        #print("tyotila "+str(tyotila))
+
         if tyotila == 1: #simulaattori päälle
-            ser.write(b'simu_on\n')
+            i = 3
+            write_mode = True
+            while i > 0:
+                ser.write(b'simu_on')
+                time.sleep(1)
+                i-=1
             print("Pyydettiin simulaattoria käynistymään")
-            time.sleep(2)
             tyotila = 3
-        if tyotila == 2: #simulaattori poispäältä
-            ser.write(b'simu_off\n')
+            write_mode = False
+
+        if tyotila == 2: #simulaattori poispäältä                   
+            i = 3
+            write_mode = True
+            while i > 0:
+                ser.write(b'simu_off')
+                time.sleep(1)
+                i-=1
             print("Pyydettiin simulaattoria sammumaan")
-            time.sleep(2)
             tyotila = 3
-        if tyotila == 3: #väylän luku täysiä
-            data = ser.readline().decode('utf-8').rstrip()
-            saatu_data = data.split()
-            print(saatu_data)   
+            write_mode = False
+
+        if tyotila == 3 and write_mode == False: #väylän luku täysiä
+            if ser.in_waiting > 0:
+                data = ser.readline().decode('utf-8').rstrip()
+                total_msg+=1
+                saatu_data = data.split()
+                print(saatu_data)
 
 if __name__ == "__main__":
     ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')
     serial_tehtava = threading.Thread(target=serial_teht, name='t2')
+    aika_tehtava = threading.Thread(target=aika_loop, name='t3')
+
     ikkuna_tehtava.start()
     serial_tehtava.start()
+    aika_tehtava.start()
+
+    aika_tehtava.join()
     ikkuna_tehtava.join()
     serial_tehtava.join()
+    
     print("Kaikki säikeet lopetettu.")
     
     
