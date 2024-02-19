@@ -96,7 +96,6 @@ class MainWindow(QMainWindow):
         self.btn_simu_off.setDisabled(False)
         global tyotila
         tyotila = 1
-        print(tyotila)
 
     def simu_off(self):
         print("Painettiin simulaattori pois.")
@@ -104,7 +103,6 @@ class MainWindow(QMainWindow):
         self.btn_simu_on.setDisabled(False)
         global tyotila
         tyotila = 2
-        print(tyotila)
         
     def etsinta(self):
         global ser
@@ -220,6 +218,10 @@ def aika_loop():
     global total_msg
     global total_msg_top
     while True:
+        if ikkuna_tehtava.is_alive() == False:
+            print("Suljettiin ajanotto tehtävä koska ohjelman ikkuna suljettiin.")
+            break 
+
         total_msg_top = total_msg
         total_msg = 0
         time.sleep(1)
@@ -233,7 +235,9 @@ def serial_teht():
     write_mode = True
     while True:
 
-        #print("tyotila "+str(tyotila))
+        if ikkuna_tehtava.is_alive() == False:
+            print("Suljettiin datansiirto tehtävä koska ohjelman ikkuna suljettiin.")
+            break 
 
         if tyotila == 1: #simulaattori päälle
             i = 3
