@@ -15,7 +15,10 @@ ser = serial
 total_msg = 0
 total_msg_top = 0
 vaylanluku = True
+tutkinta_kaynnissa = False
 
+
+nimike_lista = []
 pid_lista = []
 data_lista = []
 data_update_lista = []
@@ -36,29 +39,160 @@ def lista_update(index,kohta,data):
     old_data3[index][kohta] = old_data2[index][kohta]
     old_data2[index][kohta] = old_data1[index][kohta]
     old_data1[index][kohta] = data_lista[index][kohta]
-    data_lista[index][kohta] == data
+    data_lista[index][kohta] = data
+    #print("dataupdate index:"+str(index)+ " kohta:"+str(kohta)+" data:"+str(data))
+
+devices = 0
 
 def kasittele_data(pid,data):
     index = etsi_pid(pid)
     if index == -1:
         pid_lista.append(pid)
-        data_lista.append([-1,-1,-1,-1,-1,-1,-1,-1])
+        global devices
+        devices += 1
+        nimike_lista.append("Laite"+str(devices))
+
+        setdata = []
+        for i in range(8):
+            if len(data)>i:
+                setdata.append(data[i])
+            else:
+                setdata.append(-1)
+        
+        data_lista.append(setdata)
         old_data1.append([-1,-1,-1,-1,-1,-1,-1,-1])
         old_data2.append([-1,-1,-1,-1,-1,-1,-1,-1])
         old_data3.append([-1,-1,-1,-1,-1,-1,-1,-1])
         old_data4.append([-1,-1,-1,-1,-1,-1,-1,-1])
         data_update_lista.append([True,True,True,True,True,True,True,True])
-        index = len(pid_lista)-1
+        #index = len(pid_lista)-1
+    else:
+        i=0
+        while i < 8:
+            if len(data)>i:
+                
+                if data_lista[index][i] == data[i]:
+                    data_update_lista[index][i] = False # ei uutta dataa
+                else:
+                    lista_update(index,i,data[i])
+                    data_update_lista[index][i] = True # uus data
+            i+=1
 
-    i=0
-    while i < 8:
-        if len(data)>i:
-            if data_lista[index][i] == data[i]:
-                data_update_lista[index][i] = False # ei uutta dataa
-            else:
-                lista_update(index,i,data[i])
-                data_update_lista[index][i] = True # uus data
-        i+=1
+class Tutkinta(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setGeometry(920,200,400,480)
+        self.setWindowTitle("Datan tutkinta")
+        self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\images\search.png"))
+        # Aseta taustaväri
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.darkGray)  # Voit vaihtaa taustavärin haluamaksesi
+        self.setPalette(p)
+        self.ruudut=[]
+
+        
+        otsikot = ["Nimi","Pid","1","2","3","4","5","6","7","8"]
+        self.nimi_lista = []
+        self.data_ruutu1 = []
+        self.data_ruutu2 = []
+        self.data_ruutu3 = []
+        self.data_ruutu4 = []
+        self.data_ruutu5 = []
+        self.data_ruutu6 = []
+        self.data_ruutu7 = []
+        self.data_ruutu8 = []
+
+        last_y = -1
+        for x in range(10):
+
+            frame = QFrame(self)
+            frame.setFrameShape(QFrame.Box)  # Asetetaan laatikon tyyli
+            frame.setLineWidth(1)  
+            frame.setGeometry(40*x,0,40,21)
+            self.ruudut.append(frame)
+
+            self.tutkinta_txt = QLabel(otsikot[x],self)
+            self.tutkinta_txt.setGeometry(5+40*x,0,40,21)
+
+
+            for y in range(len(pid_lista)):
+
+                frame = QFrame(self)
+                frame.setFrameShape(QFrame.Box)  # Asetetaan laatikon tyyli
+                frame.setLineWidth(1)  
+                frame.setGeometry(40*x,20+20*y,40,21)
+
+                if last_y != y and x == 0: # x estää ettei kerrota 10 :D  
+                    print("testaus:"+str(y))
+                    #nämä ei käytännössä muutu joten tarvitsee piirtää kerran
+                    self.tutkinta_txt = QLabel("0x"+str(pid_lista[(y-1)]),self)
+                    self.tutkinta_txt.setGeometry(45,20+20*y,40,21)
+
+                    #nämä taas muuttuu todennäköisesti joten lisätään listalle elementit että päästään myöhemmin käsiks
+                    nimi_txt = QLabel(str(nimike_lista[(y-1)]),self) #
+                    nimi_txt.setGeometry(3,20+20*y,40,21)
+                    self.nimi_lista.append(nimi_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][0]),self) #
+                    data_txt.setGeometry(82,20+20*y,40,21)
+                    self.data_ruutu1.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][1]),self) #str(data_lista[(y-1)][1])
+                    data_txt.setGeometry(82+40,20+20*y,40,21)
+                    self.data_ruutu2.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][2]),self) #str(data_lista[(y-1)][2])
+                    data_txt.setGeometry(82+40*2,20+20*y,40,21)
+                    self.data_ruutu3.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][3]),self) #str(data_lista[(y-1)][3])
+                    data_txt.setGeometry(82+40*3,20+20*y,40,21)
+                    self.data_ruutu4.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][4]),self) #str(data_lista[(y-1)][4])
+                    data_txt.setGeometry(82+40*4,20+20*y,40,21)
+                    self.data_ruutu5.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][5]),self) #str(data_lista[(y-1)][5])
+                    data_txt.setGeometry(82+40*5,20+20*y,40,21)
+                    self.data_ruutu6.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][6]),self) #str(data_lista[(y-1)][6])
+                    data_txt.setGeometry(82+40*6,20+20*y,40,21)
+                    self.data_ruutu7.append(data_txt)
+
+                    data_txt = QLabel(str(data_lista[(y-1)][7]),self) # str(data_lista[(y-1)][7])
+                    data_txt.setGeometry(82+40*7,20+20*y,40,21)
+                    self.data_ruutu8.append(data_txt)
+                    
+                    last_y = y #katotaan et kerran per kerros
+
+                #frame.hide()
+                self.ruudut.append(frame)
+        QTimer.singleShot(500, self.update_data_loop)
+        self.show()
+    
+    def closeEvent(self, event):
+        global tutkinta_kaynnissa
+        tutkinta_kaynnissa = False
+
+        
+    def update_data_loop(self):
+        #print("nimike listan pituus "+str(len(self.nimi_lista)) + " / "+str(len(nimike_lista)))
+        for i in range(len(self.nimi_lista)): #näitä pitäisi olla kaikkia sama määrä
+            
+            self.nimi_lista[i].setText(str(nimike_lista[i]))
+            self.data_ruutu1[i].setText(str(data_lista[i][0]))
+            self.data_ruutu2[i].setText(str(data_lista[i][1]))
+            self.data_ruutu3[i].setText(str(data_lista[i][2]))
+            self.data_ruutu4[i].setText(str(data_lista[i][3]))
+            self.data_ruutu5[i].setText(str(data_lista[i][4]))
+            self.data_ruutu6[i].setText(str(data_lista[i][5]))
+            self.data_ruutu7[i].setText(str(data_lista[i][6]))
+            self.data_ruutu8[i].setText(str(data_lista[i][7]))
+       
+        QTimer.singleShot(100, self.update_data_loop)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -80,37 +214,55 @@ class MainWindow(QMainWindow):
               #"border: 1px solid #B0B0B0;}")
         
         self.simu_txt = QLabel("Väylän simulointi",self)
-        self.simu_txt.setGeometry(15,70,300,20)
+        self.simu_txt.setGeometry(15,80,300,20)
         self.simu_txt.hide()
 
         self.btn_simu_on = QPushButton("Päälle",self)
-        self.btn_simu_on.setGeometry(120,70,80,20)
+        self.btn_simu_on.setGeometry(120,80,80,20)
         self.btn_simu_on.clicked.connect(self.simu_on)
         self.btn_simu_on.hide()
 
         self.btn_simu_off = QPushButton("Pois",self)
-        self.btn_simu_off.setGeometry(200,70,80,20)
+        self.btn_simu_off.setGeometry(210,80,80,20)
         self.btn_simu_off.clicked.connect(self.simu_off)
         self.btn_simu_off.hide()
         self.btn_simu_off.setDisabled(True)
 
         self.vayla_txt = QLabel("Väylän lukeminen",self)
-        self.vayla_txt.setGeometry(15,90,300,20)
+        self.vayla_txt.setGeometry(15,110,300,20)
         self.vayla_txt.hide()
 
         self.btn_vayla_on = QPushButton("Päälle",self)
-        self.btn_vayla_on.setGeometry(120,90,80,20)
+        self.btn_vayla_on.setGeometry(120,110,80,20)
         self.btn_vayla_on.clicked.connect(self.vayla_on)
         self.btn_vayla_on.setDisabled(True)
         self.btn_vayla_on.hide()
 
         self.btn_vayla_off = QPushButton("Pois",self)
-        self.btn_vayla_off.setGeometry(200,90,80,20)
+        self.btn_vayla_off.setGeometry(210,110,80,20)
         self.btn_vayla_off.clicked.connect(self.vayla_off)
         self.btn_vayla_off.hide()
 
+        self.nollaus_txt = QLabel("Luetun datan nollaus",self)
+        self.nollaus_txt.setGeometry(15,140,300,20)
+        self.nollaus_txt.hide()
+
+        self.btn_nollaus= QPushButton("Nollaa",self)
+        self.btn_nollaus.setGeometry(160,140,80,20)
+        self.btn_nollaus.clicked.connect(self.nollaus)
+        self.btn_nollaus.hide()
+
+        self.tutkinta_txt = QLabel("Datan tutkiminen",self)
+        self.tutkinta_txt.setGeometry(15,170,300,20)
+        self.tutkinta_txt.hide()
+
+        self.btn_tutkinta= QPushButton("Tutki",self)
+        self.btn_tutkinta.setGeometry(160,170,80,20)
+        self.btn_tutkinta.clicked.connect(self.aloita_tutkinta)
+        self.btn_tutkinta.hide()
+
         self.label = QLabel(self)
-        pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_tool.jpg")
+        pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\images\canbus_tool.jpg")
         self.label.setPixmap(pixmap)
         self.label.setGeometry(40, -30, pixmap.width(), pixmap.height())
 
@@ -119,7 +271,7 @@ class MainWindow(QMainWindow):
         self.txt.setGeometry(10,170,300,40)
         self.txt.setStyleSheet("color: white;")
 
-        self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\canbus_adapter.png"))
+        self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\images\canbus_adapter.png"))
 
         self.palkki = QProgressBar(self) 
         self.palkki.setValue(99)
@@ -133,17 +285,82 @@ class MainWindow(QMainWindow):
         self.dropdown.setGeometry(220,210,100,30)
         self.dropdown.hide()
         self.dropdown.currentIndexChanged.connect(self.nopeus_valittu)
-        self.show()
+        
 
         self.laite = -1
         self.mode = 0
+        '''
+        self.nimilista=[]
+        self.pidlista=[]
+        self.datalista=[]
+        
+        
+        
+        for i in range(100):
+            self.nimilista.append(QLabel(str("Tuntematon"), self)) #luodaan lempinimi lista
+            self.nimilista[(len(self.nimilista)-1)].setGeometry(10,10 + 15 * i ,70,20)
+            self.nimilista[(len(self.nimilista)-1)].hide()
+
+            self.pidlista.append(QLabel(str("0x0"), self)) #luodaan pid lista
+            self.pidlista[(len(self.pidlista)-1)].setGeometry(80,10 + 15 * i ,50,20)
+            self.pidlista[(len(self.pidlista)-1)].hide()
+
+            vaaka_lista = []
+            for b in range(8):
+                vaaka_lista.append(QLabel(str("0x0"), self)) #luodaan pid lista
+                vaaka_lista[(len(vaaka_lista)-1)].setGeometry(80+40+25*b,10 + 15 * i ,30,20)
+                vaaka_lista[(len(vaaka_lista)-1)].hide()
+
+            self.datalista.append(vaaka_lista)'''
+
+        self.show()
         
         #ohjelmakierto = QTimer(self)
         #ohjelmakierto.timeout.connect(self.ohjelma_looppi)
         #ohjelmakierto.start() #tän sisälle voi laittaa myös ajan
         
         QTimer.singleShot(1000, self.etsinta)
+
+        QTimer.singleShot(1000, self.saako_avata_listan_loop)
     
+    def saako_avata_listan_loop(self):
+        if tutkinta_kaynnissa:
+            self.btn_tutkinta.setDisabled(True)
+        else:
+            self.btn_tutkinta.setDisabled(False)
+        QTimer.singleShot(1000, self.saako_avata_listan_loop)
+
+    def aloita_tutkinta(self):
+        global tutkinta_kaynnissa
+        if tutkinta_kaynnissa == False:
+            print("aloitetaan seikkailu ikkuna")
+            self.tutkinta_ikkuna = Tutkinta()
+            self.btn_tutkinta.setDisabled(True)
+
+            tutkinta_kaynnissa = True
+
+    def nollaus(self):
+        global pid_lista 
+        global data_lista 
+        global data_update_lista 
+        global old_data1 
+        global old_data2 
+        global old_data3 
+        global old_data4 
+        pid_lista = []
+        data_lista = []
+        data_update_lista = []
+        old_data1 = []
+        old_data2 = []
+        old_data3 = []
+        old_data4 = []
+
+        #jos tutkinta käynnissä ikkuna uudelleen avataan
+        global tutkinta_kaynnissa
+        if tutkinta_kaynnissa:
+            tutkinta_kaynnissa = False
+            self.tutkinta_ikkuna.close()
+
     def vayla_on(self):
         print("Väylä painettu päälle")
         self.btn_vayla_on.setDisabled(True)
@@ -161,6 +378,8 @@ class MainWindow(QMainWindow):
     def aika_tekstin_paivittaja(self):
         nopeus = self.dropdown.currentText()
         self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s \n Laitetunnisteita löytynyt: "+str(len(pid_lista))+"kpl")
+        
+
         QTimer.singleShot(100, self.aika_tekstin_paivittaja)
 
     def simu_on(self):
@@ -249,8 +468,9 @@ class MainWindow(QMainWindow):
                             self.virhekoodi("VäyläTyökalun määritys epäonnistui.")
                             self.mode = 3 #määritys epäonnistui
                             break
-        except:
-            self.virhekoodi("Yhteys VäyläTyökaluun menetettiin.")
+        except Exception as koodi:
+            self.virhekoodi("Yhteys VäyläTyökaluun menetettiin. \n")
+            print("TarkempiVirhe:"+str(koodi))
 
 
     def paavalikko(self):
@@ -265,8 +485,19 @@ class MainWindow(QMainWindow):
         self.btn_vayla_on.show()
         self.btn_vayla_off.show()
         self.vayla_txt.show()
+        self.btn_nollaus.show()
+        self.nollaus_txt.show()
+        self.btn_tutkinta.show()
+        self.tutkinta_txt.show()
+        
+        #for i in range(len(self.ruudut)):
+        #    for a in range(len(self.ruudut[i])):
+        #        print(f"{i} - {a}")
+        #        self.ruudut[i][a].show()
+
         global tyotila
         tyotila = 3
+
         QTimer.singleShot(100, self.aika_tekstin_paivittaja)
       
 
@@ -351,7 +582,7 @@ def serial_teht():
                     saatu_data = data.split()
                     if len(saatu_data)>3:
                         kasittele_data(saatu_data[1], muunna_data(saatu_data))
-                    print(saatu_data)
+                    #print(saatu_data)
 
 if __name__ == "__main__":
     ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')

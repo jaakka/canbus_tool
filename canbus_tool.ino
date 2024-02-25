@@ -5,7 +5,7 @@ bool simulation = false;
 const int SPI_CS_PIN = 10;
 MCP_CAN CANB(SPI_CS_PIN);
 
-
+// 57600 
 void setup() 
 {
   randomSeed(analogRead(0));
