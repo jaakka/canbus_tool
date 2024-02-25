@@ -12,7 +12,7 @@ void canbus_read()
     Serial.print(" DATA: ");
     for(int i = 0; i<len; i++)    // print the data
     {
-      if (buf[i] < 0b10000000) Serial.print("0"); 
+      /*if (buf[i] < 0b10000000) Serial.print("0"); 
       if (buf[i] < 0b1000000) Serial.print("0"); 
       if (buf[i] < 0b100000) Serial.print("0"); 
       if (buf[i] < 0b10000) Serial.print("0"); 
@@ -21,6 +21,10 @@ void canbus_read()
       if (buf[i] < 0b10) Serial.print("0"); 
         Serial.print(buf[i], BIN); 
           Serial.print(" ");
+        */
+        Serial.print("0x");
+        Serial.print(buf[i],HEX); 
+        Serial.print(" ");
     }
     Serial.println();
   }

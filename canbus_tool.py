@@ -4,9 +4,11 @@ import time
 import sys
 from PySide6.QtWidgets import QProgressBar, QApplication, QMainWindow, QComboBox, QPushButton, QWidget, QVBoxLayout,QLabel,QFrame,QLineEdit
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPixmap,QIcon
+from PySide6.QtGui import QPixmap,QIcon, QColor, QPainter
 import os
 import threading
+from functools import partial # tämä sallii että napin connect toiminnon yhteydessä voidaan antaa argumentti
+
 
 test = 0
 tyotila = 0
@@ -64,7 +66,7 @@ def kasittele_data(pid,data):
         old_data2.append([-1,-1,-1,-1,-1,-1,-1,-1])
         old_data3.append([-1,-1,-1,-1,-1,-1,-1,-1])
         old_data4.append([-1,-1,-1,-1,-1,-1,-1,-1])
-        data_update_lista.append([True,True,True,True,True,True,True,True])
+        data_update_lista.append([False,False,False,False,False,False,False,False])
         #index = len(pid_lista)-1
     else:
         i=0
@@ -78,6 +80,23 @@ def kasittele_data(pid,data):
                     data_update_lista[index][i] = True # uus data
             i+=1
 
+class yksiloityikkuna(QMainWindow):
+    def __init__(self,index):
+        super().__init__()
+        self.setGeometry(600,460,320,220)
+
+        self.setWindowTitle(str(nimike_lista[index])+" tarkkailu [pid 0x"+str(pid_lista[index])+"]")
+        self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\images\device.png"))
+
+        # Aseta taustaväri
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.darkGray)  # Voit vaihtaa taustavärin haluamaksesi
+        self.setPalette(p)
+
+
+        self.show()
+
 class Tutkinta(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -87,7 +106,7 @@ class Tutkinta(QMainWindow):
         # Aseta taustaväri
         self.setAutoFillBackground(True)
         p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.darkGray)  # Voit vaihtaa taustavärin haluamaksesi
+        p.setColor(self.backgroundRole(), Qt.white)  # Voit vaihtaa taustavärin haluamaksesi
         self.setPalette(p)
         self.ruudut=[]
 
@@ -103,12 +122,14 @@ class Tutkinta(QMainWindow):
         self.data_ruutu7 = []
         self.data_ruutu8 = []
 
+
         last_y = -1
         for x in range(10):
 
             frame = QFrame(self)
             frame.setFrameShape(QFrame.Box)  # Asetetaan laatikon tyyli
             frame.setLineWidth(1)  
+            frame.setStyleSheet("background-color: lightgray;")
             frame.setGeometry(40*x,0,40,21)
             self.ruudut.append(frame)
 
@@ -118,61 +139,73 @@ class Tutkinta(QMainWindow):
 
             for y in range(len(pid_lista)):
 
+                
+
                 frame = QFrame(self)
                 frame.setFrameShape(QFrame.Box)  # Asetetaan laatikon tyyli
                 frame.setLineWidth(1)  
+                #frame.setStyleSheet("background-color: lime; color:black;")
                 frame.setGeometry(40*x,20+20*y,40,21)
 
+                self.ruudut.append(frame)
+
                 if last_y != y and x == 0: # x estää ettei kerrota 10 :D  
-                    print("testaus:"+str(y))
+                    #print("testaus:"+str(y))
                     #nämä ei käytännössä muutu joten tarvitsee piirtää kerran
-                    self.tutkinta_txt = QLabel("0x"+str(pid_lista[(y-1)]),self)
+                    self.tutkinta_txt = QLabel("0x"+str(pid_lista[(y)]),self)
                     self.tutkinta_txt.setGeometry(45,20+20*y,40,21)
 
                     #nämä taas muuttuu todennäköisesti joten lisätään listalle elementit että päästään myöhemmin käsiks
-                    nimi_txt = QLabel(str(nimike_lista[(y-1)]),self) #
+                    #nimi_txt = QLabel(str(nimike_lista[(y)]),self) #
+                    nimi_txt = QPushButton(str(nimike_lista[(y)]),self)
+                    nimi_txt.clicked.connect(partial(self.tutki_laitetta, y))
+                    
                     nimi_txt.setGeometry(3,20+20*y,40,21)
                     self.nimi_lista.append(nimi_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][0]),self) #
+                    data_txt = QLabel(str(data_lista[(y)][0]),self) #
                     data_txt.setGeometry(82,20+20*y,40,21)
                     self.data_ruutu1.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][1]),self) #str(data_lista[(y-1)][1])
+                    data_txt = QLabel(str(data_lista[(y)][1]),self) #str(data_lista[(y-1)][1])
                     data_txt.setGeometry(82+40,20+20*y,40,21)
                     self.data_ruutu2.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][2]),self) #str(data_lista[(y-1)][2])
+                    data_txt = QLabel(str(data_lista[(y)][2]),self) #str(data_lista[(y-1)][2])
                     data_txt.setGeometry(82+40*2,20+20*y,40,21)
                     self.data_ruutu3.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][3]),self) #str(data_lista[(y-1)][3])
+                    data_txt = QLabel(str(data_lista[(y)][3]),self) #str(data_lista[(y-1)][3])
                     data_txt.setGeometry(82+40*3,20+20*y,40,21)
                     self.data_ruutu4.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][4]),self) #str(data_lista[(y-1)][4])
+                    data_txt = QLabel(str(data_lista[(y)][4]),self) #str(data_lista[(y-1)][4])
                     data_txt.setGeometry(82+40*4,20+20*y,40,21)
                     self.data_ruutu5.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][5]),self) #str(data_lista[(y-1)][5])
+                    data_txt = QLabel(str(data_lista[(y)][5]),self) #str(data_lista[(y-1)][5])
                     data_txt.setGeometry(82+40*5,20+20*y,40,21)
                     self.data_ruutu6.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][6]),self) #str(data_lista[(y-1)][6])
+                    data_txt = QLabel(str(data_lista[(y)][6]),self) #str(data_lista[(y-1)][6])
                     data_txt.setGeometry(82+40*6,20+20*y,40,21)
                     self.data_ruutu7.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y-1)][7]),self) # str(data_lista[(y-1)][7])
+                    data_txt = QLabel(str(data_lista[(y)][7]),self) # str(data_lista[(y-1)][7])
                     data_txt.setGeometry(82+40*7,20+20*y,40,21)
                     self.data_ruutu8.append(data_txt)
                     
                     last_y = y #katotaan et kerran per kerros
 
                 #frame.hide()
-                self.ruudut.append(frame)
-        QTimer.singleShot(500, self.update_data_loop)
+                
+        QTimer.singleShot(100, self.update_data_loop)
         self.show()
     
+    def tutki_laitetta(self,laite):
+        print("Avataan laitetta indeksillä "+str(laite))
+        self.uusi_ikkuna = yksiloityikkuna(laite)
+
     def closeEvent(self, event):
         global tutkinta_kaynnissa
         tutkinta_kaynnissa = False
@@ -182,7 +215,50 @@ class Tutkinta(QMainWindow):
         #print("nimike listan pituus "+str(len(self.nimi_lista)) + " / "+str(len(nimike_lista)))
         for i in range(len(self.nimi_lista)): #näitä pitäisi olla kaikkia sama määrä
             
+            '''totalthings = len(self.nimi_lista) * 2 + 3
+            if data_update_lista[i][0] == True:  
+                self.ruudut[totalthings].setStyleSheet("background-color: lime; color:black;")
+            else:
+                self.ruudut[totalthings].setStyleSheet("background-color: white; color:black;")
+            '''
             self.nimi_lista[i].setText(str(nimike_lista[i]))
+
+            for b in range(8):
+                if data_update_lista[i][b]:
+                    if b == 0:
+                        self.data_ruutu1[i].setStyleSheet("background-color: lime;")
+                    if b == 1:
+                        self.data_ruutu2[i].setStyleSheet("background-color: lime;")
+                    if b == 2:
+                        self.data_ruutu3[i].setStyleSheet("background-color: lime;")
+                    if b == 3:
+                        self.data_ruutu4[i].setStyleSheet("background-color: lime;")
+                    if b == 4:
+                        self.data_ruutu5[i].setStyleSheet("background-color: lime;")
+                    if b == 5:
+                        self.data_ruutu6[i].setStyleSheet("background-color: lime;")
+                    if b == 6:
+                        self.data_ruutu7[i].setStyleSheet("background-color: lime;")
+                    if b == 7:
+                        self.data_ruutu8[i].setStyleSheet("background-color: lime;")
+                else:
+                    if b == 0:
+                        self.data_ruutu1[i].setStyleSheet("background-color: white;")
+                    if b == 1:
+                        self.data_ruutu2[i].setStyleSheet("background-color: white;")
+                    if b == 2:
+                        self.data_ruutu3[i].setStyleSheet("background-color: white;")
+                    if b == 3:
+                        self.data_ruutu4[i].setStyleSheet("background-color: white;")
+                    if b == 4:
+                        self.data_ruutu5[i].setStyleSheet("background-color: white;")
+                    if b == 5:
+                        self.data_ruutu6[i].setStyleSheet("background-color: white;")
+                    if b == 6:
+                        self.data_ruutu7[i].setStyleSheet("background-color: white;")
+                    if b == 7:
+                        self.data_ruutu8[i].setStyleSheet("background-color: white;")
+
             self.data_ruutu1[i].setText(str(data_lista[i][0]))
             self.data_ruutu2[i].setText(str(data_lista[i][1]))
             self.data_ruutu3[i].setText(str(data_lista[i][2]))
@@ -191,7 +267,9 @@ class Tutkinta(QMainWindow):
             self.data_ruutu6[i].setText(str(data_lista[i][5]))
             self.data_ruutu7[i].setText(str(data_lista[i][6]))
             self.data_ruutu8[i].setText(str(data_lista[i][7]))
+
        
+
         QTimer.singleShot(100, self.update_data_loop)
 
 class MainWindow(QMainWindow):
@@ -545,7 +623,7 @@ def serial_teht():
     global tyotila
     global ikkuna_tehtava
     global ser
-    write_mode = True
+    write_mode = False # tämä muuttettiin jos vaikuttaa että autoo ei lueta ennen kuin on simuloitu
     while True:
 
         if ikkuna_tehtava.is_alive() == False:
@@ -583,6 +661,7 @@ def serial_teht():
                     if len(saatu_data)>3:
                         kasittele_data(saatu_data[1], muunna_data(saatu_data))
                     #print(saatu_data)
+        #print("työtila:"+str(tyotila))
 
 if __name__ == "__main__":
     ikkuna_tehtava = threading.Thread(target=ikkuna_teht, name='t1')
