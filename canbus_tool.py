@@ -163,90 +163,91 @@ class yksiloityikkuna(QMainWindow):
                 return str(int(value, 16))
 
     def update_data_loop(self):
-        if data_update_lista[self.index][0]:
-            self.ruututxt[0][0].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][0].setStyleSheet("background-color: white;")
+        if len(data_update_lista)>self.index: # korjaa virheen kun nollaus painike sulkee seikkailu ikkunan
+            if data_update_lista[self.index][0]:
+                self.ruututxt[0][0].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][0].setStyleSheet("background-color: white;")
         
-        if data_update_lista[self.index][1]:
-            self.ruututxt[0][1].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][1].setStyleSheet("background-color: white;")
-        
-        if data_update_lista[self.index][2]:
-            self.ruututxt[0][2].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][2].setStyleSheet("background-color: white;")
-        
-        if data_update_lista[self.index][3]:
-            self.ruututxt[0][3].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][3].setStyleSheet("background-color: white;")
-        
-        if data_update_lista[self.index][4]:
-            self.ruututxt[0][4].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][4].setStyleSheet("background-color: white;")
-        
-        if data_update_lista[self.index][5]:
-            self.ruututxt[0][5].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][5].setStyleSheet("background-color: white;")
-        
-        if data_update_lista[self.index][6]:
-            self.ruututxt[0][6].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][6].setStyleSheet("background-color: white;")
+            if data_update_lista[self.index][1]:
+                self.ruututxt[0][1].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][1].setStyleSheet("background-color: white;")
 
-        if data_update_lista[self.index][7]:
-            self.ruututxt[0][7].setStyleSheet("background-color: lime;")
-        else:
-            self.ruututxt[0][7].setStyleSheet("background-color: white;")
+            if data_update_lista[self.index][2]:
+                self.ruututxt[0][2].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][2].setStyleSheet("background-color: white;")
 
-        self.ruututxt[0][0].setText(self.test_are_null(str(data_lista[self.index][0])))
-        self.ruututxt[0][1].setText(self.test_are_null(str(data_lista[self.index][1])))
-        self.ruututxt[0][2].setText(self.test_are_null(str(data_lista[self.index][2])))
-        self.ruututxt[0][3].setText(self.test_are_null(str(data_lista[self.index][3])))
-        self.ruututxt[0][4].setText(self.test_are_null(str(data_lista[self.index][4])))
-        self.ruututxt[0][5].setText(self.test_are_null(str(data_lista[self.index][5])))
-        self.ruututxt[0][6].setText(self.test_are_null(str(data_lista[self.index][6])))
-        self.ruututxt[0][7].setText(self.test_are_null(str(data_lista[self.index][7])))
+            if data_update_lista[self.index][3]:
+                self.ruututxt[0][3].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][3].setStyleSheet("background-color: white;")
 
-        self.ruututxt[1][0].setText(self.test_are_null(str(old_data1[self.index][0])))
-        self.ruututxt[1][1].setText(self.test_are_null(str(old_data1[self.index][1])))
-        self.ruututxt[1][2].setText(self.test_are_null(str(old_data1[self.index][2])))
-        self.ruututxt[1][3].setText(self.test_are_null(str(old_data1[self.index][3])))
-        self.ruututxt[1][4].setText(self.test_are_null(str(old_data1[self.index][4])))
-        self.ruututxt[1][5].setText(self.test_are_null(str(old_data1[self.index][5])))
-        self.ruututxt[1][6].setText(self.test_are_null(str(old_data1[self.index][6])))
-        self.ruututxt[1][7].setText(self.test_are_null(str(old_data1[self.index][7])))
+            if data_update_lista[self.index][4]:
+                self.ruututxt[0][4].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][4].setStyleSheet("background-color: white;")
 
-        self.ruututxt[2][0].setText(self.test_are_null(str(old_data2[self.index][0])))
-        self.ruututxt[2][1].setText(self.test_are_null(str(old_data2[self.index][1])))
-        self.ruututxt[2][2].setText(self.test_are_null(str(old_data2[self.index][2])))
-        self.ruututxt[2][3].setText(self.test_are_null(str(old_data2[self.index][3])))
-        self.ruututxt[2][4].setText(self.test_are_null(str(old_data2[self.index][4])))
-        self.ruututxt[2][5].setText(self.test_are_null(str(old_data2[self.index][5])))
-        self.ruututxt[2][6].setText(self.test_are_null(str(old_data2[self.index][6])))
-        self.ruututxt[2][7].setText(self.test_are_null(str(old_data2[self.index][7])))
+            if data_update_lista[self.index][5]:
+                self.ruututxt[0][5].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][5].setStyleSheet("background-color: white;")
 
-        self.ruututxt[3][0].setText(self.test_are_null(str(old_data3[self.index][0])))
-        self.ruututxt[3][1].setText(self.test_are_null(str(old_data3[self.index][1])))
-        self.ruututxt[3][2].setText(self.test_are_null(str(old_data3[self.index][2])))
-        self.ruututxt[3][3].setText(self.test_are_null(str(old_data3[self.index][3])))
-        self.ruututxt[3][4].setText(self.test_are_null(str(old_data3[self.index][4])))
-        self.ruututxt[3][5].setText(self.test_are_null(str(old_data3[self.index][5])))
-        self.ruututxt[3][6].setText(self.test_are_null(str(old_data3[self.index][6])))
-        self.ruututxt[3][7].setText(self.test_are_null(str(old_data3[self.index][7])))
+            if data_update_lista[self.index][6]:
+                self.ruututxt[0][6].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][6].setStyleSheet("background-color: white;")
 
-        self.ruututxt[4][0].setText(self.test_are_null(str(old_data4[self.index][0])))
-        self.ruututxt[4][1].setText(self.test_are_null(str(old_data4[self.index][1])))
-        self.ruututxt[4][2].setText(self.test_are_null(str(old_data4[self.index][2])))
-        self.ruututxt[4][3].setText(self.test_are_null(str(old_data4[self.index][3])))
-        self.ruututxt[4][4].setText(self.test_are_null(str(old_data4[self.index][4])))
-        self.ruututxt[4][5].setText(self.test_are_null(str(old_data4[self.index][5])))
-        self.ruututxt[4][6].setText(self.test_are_null(str(old_data4[self.index][6])))
-        self.ruututxt[4][7].setText(self.test_are_null(str(old_data4[self.index][7])))
+            if data_update_lista[self.index][7]:
+                self.ruututxt[0][7].setStyleSheet("background-color: lime;")
+            else:
+                self.ruututxt[0][7].setStyleSheet("background-color: white;")
+
+            self.ruututxt[0][0].setText(self.test_are_null(str(data_lista[self.index][0])))
+            self.ruututxt[0][1].setText(self.test_are_null(str(data_lista[self.index][1])))
+            self.ruututxt[0][2].setText(self.test_are_null(str(data_lista[self.index][2])))
+            self.ruututxt[0][3].setText(self.test_are_null(str(data_lista[self.index][3])))
+            self.ruututxt[0][4].setText(self.test_are_null(str(data_lista[self.index][4])))
+            self.ruututxt[0][5].setText(self.test_are_null(str(data_lista[self.index][5])))
+            self.ruututxt[0][6].setText(self.test_are_null(str(data_lista[self.index][6])))
+            self.ruututxt[0][7].setText(self.test_are_null(str(data_lista[self.index][7])))
+
+            self.ruututxt[1][0].setText(self.test_are_null(str(old_data1[self.index][0])))
+            self.ruututxt[1][1].setText(self.test_are_null(str(old_data1[self.index][1])))
+            self.ruututxt[1][2].setText(self.test_are_null(str(old_data1[self.index][2])))
+            self.ruututxt[1][3].setText(self.test_are_null(str(old_data1[self.index][3])))
+            self.ruututxt[1][4].setText(self.test_are_null(str(old_data1[self.index][4])))
+            self.ruututxt[1][5].setText(self.test_are_null(str(old_data1[self.index][5])))
+            self.ruututxt[1][6].setText(self.test_are_null(str(old_data1[self.index][6])))
+            self.ruututxt[1][7].setText(self.test_are_null(str(old_data1[self.index][7])))
+
+            self.ruututxt[2][0].setText(self.test_are_null(str(old_data2[self.index][0])))
+            self.ruututxt[2][1].setText(self.test_are_null(str(old_data2[self.index][1])))
+            self.ruututxt[2][2].setText(self.test_are_null(str(old_data2[self.index][2])))
+            self.ruututxt[2][3].setText(self.test_are_null(str(old_data2[self.index][3])))
+            self.ruututxt[2][4].setText(self.test_are_null(str(old_data2[self.index][4])))
+            self.ruututxt[2][5].setText(self.test_are_null(str(old_data2[self.index][5])))
+            self.ruututxt[2][6].setText(self.test_are_null(str(old_data2[self.index][6])))
+            self.ruututxt[2][7].setText(self.test_are_null(str(old_data2[self.index][7])))
+
+            self.ruututxt[3][0].setText(self.test_are_null(str(old_data3[self.index][0])))
+            self.ruututxt[3][1].setText(self.test_are_null(str(old_data3[self.index][1])))
+            self.ruututxt[3][2].setText(self.test_are_null(str(old_data3[self.index][2])))
+            self.ruututxt[3][3].setText(self.test_are_null(str(old_data3[self.index][3])))
+            self.ruututxt[3][4].setText(self.test_are_null(str(old_data3[self.index][4])))
+            self.ruututxt[3][5].setText(self.test_are_null(str(old_data3[self.index][5])))
+            self.ruututxt[3][6].setText(self.test_are_null(str(old_data3[self.index][6])))
+            self.ruututxt[3][7].setText(self.test_are_null(str(old_data3[self.index][7])))
+
+            self.ruututxt[4][0].setText(self.test_are_null(str(old_data4[self.index][0])))
+            self.ruututxt[4][1].setText(self.test_are_null(str(old_data4[self.index][1])))
+            self.ruututxt[4][2].setText(self.test_are_null(str(old_data4[self.index][2])))
+            self.ruututxt[4][3].setText(self.test_are_null(str(old_data4[self.index][3])))
+            self.ruututxt[4][4].setText(self.test_are_null(str(old_data4[self.index][4])))
+            self.ruututxt[4][5].setText(self.test_are_null(str(old_data4[self.index][5])))
+            self.ruututxt[4][6].setText(self.test_are_null(str(old_data4[self.index][6])))
+            self.ruututxt[4][7].setText(self.test_are_null(str(old_data4[self.index][7])))
 
 
         QTimer.singleShot(10, self.update_data_loop)
@@ -379,63 +380,66 @@ class Tutkinta(QMainWindow):
 
         
     def update_data_loop(self):
-        #print("nimike listan pituus "+str(len(self.nimi_lista)) + " / "+str(len(nimike_lista)))
-        for i in range(len(self.nimi_lista)): #näitä pitäisi olla kaikkia sama määrä
-            
-            '''totalthings = len(self.nimi_lista) * 2 + 3
-            if data_update_lista[i][0] == True:  
-                self.ruudut[totalthings].setStyleSheet("background-color: lime; color:black;")
-            else:
-                self.ruudut[totalthings].setStyleSheet("background-color: white; color:black;")
-            '''
-            self.nimi_lista[i].setText(str(nimike_lista[i]))
+        if tutkinta_kaynnissa: #että ei suoriteta kun ikkuna suljettu, haamu toimintona 
+            #print("nimike listan pituus "+str(len(self.nimi_lista)) + " / "+str(len(nimike_lista)))
+            for i in range(len(self.nimi_lista)): #näitä pitäisi olla kaikkia sama määrä
 
-            for b in range(8):
-                if data_update_lista[i][b]:
-                    if b == 0:
-                        self.data_ruutu1[i].setStyleSheet("background-color: lime;")
-                    if b == 1:
-                        self.data_ruutu2[i].setStyleSheet("background-color: lime;")
-                    if b == 2:
-                        self.data_ruutu3[i].setStyleSheet("background-color: lime;")
-                    if b == 3:
-                        self.data_ruutu4[i].setStyleSheet("background-color: lime;")
-                    if b == 4:
-                        self.data_ruutu5[i].setStyleSheet("background-color: lime;")
-                    if b == 5:
-                        self.data_ruutu6[i].setStyleSheet("background-color: lime;")
-                    if b == 6:
-                        self.data_ruutu7[i].setStyleSheet("background-color: lime;")
-                    if b == 7:
-                        self.data_ruutu8[i].setStyleSheet("background-color: lime;")
+                '''totalthings = len(self.nimi_lista) * 2 + 3
+                if data_update_lista[i][0] == True:  
+                    self.ruudut[totalthings].setStyleSheet("background-color: lime; color:black;")
                 else:
-                    if b == 0:
-                        self.data_ruutu1[i].setStyleSheet("background-color: white;")
-                    if b == 1:
-                        self.data_ruutu2[i].setStyleSheet("background-color: white;")
-                    if b == 2:
-                        self.data_ruutu3[i].setStyleSheet("background-color: white;")
-                    if b == 3:
-                        self.data_ruutu4[i].setStyleSheet("background-color: white;")
-                    if b == 4:
-                        self.data_ruutu5[i].setStyleSheet("background-color: white;")
-                    if b == 5:
-                        self.data_ruutu6[i].setStyleSheet("background-color: white;")
-                    if b == 6:
-                        self.data_ruutu7[i].setStyleSheet("background-color: white;")
-                    if b == 7:
-                        self.data_ruutu8[i].setStyleSheet("background-color: white;")
+                    self.ruudut[totalthings].setStyleSheet("background-color: white; color:black;")
+                '''
+                self.nimi_lista[i].setText(str(nimike_lista[i]))
 
-            self.data_ruutu1[i].setText(self.test_are_null(str(data_lista[i][0])))
-            self.data_ruutu2[i].setText(self.test_are_null(str(data_lista[i][1])))
-            self.data_ruutu3[i].setText(self.test_are_null(str(data_lista[i][2])))
-            self.data_ruutu4[i].setText(self.test_are_null(str(data_lista[i][3])))
-            self.data_ruutu5[i].setText(self.test_are_null(str(data_lista[i][4])))
-            self.data_ruutu6[i].setText(self.test_are_null(str(data_lista[i][5])))
-            self.data_ruutu7[i].setText(self.test_are_null(str(data_lista[i][6])))
-            self.data_ruutu8[i].setText(self.test_are_null(str(data_lista[i][7])))
+                for b in range(8):
+                    if len(data_update_lista)>i: #poistaa errorin kun ikkuna suljetaan nollaamisen takia
+                        if data_update_lista[i][b]:
+                            if b == 0:
+                                self.data_ruutu1[i].setStyleSheet("background-color: lime;")
+                            if b == 1:
+                                self.data_ruutu2[i].setStyleSheet("background-color: lime;")
+                            if b == 2:
+                                self.data_ruutu3[i].setStyleSheet("background-color: lime;")
+                            if b == 3:
+                                self.data_ruutu4[i].setStyleSheet("background-color: lime;")
+                            if b == 4:
+                                self.data_ruutu5[i].setStyleSheet("background-color: lime;")
+                            if b == 5:
+                                self.data_ruutu6[i].setStyleSheet("background-color: lime;")
+                            if b == 6:
+                                self.data_ruutu7[i].setStyleSheet("background-color: lime;")
+                            if b == 7:
+                                self.data_ruutu8[i].setStyleSheet("background-color: lime;")
+                        else:
+                            if b == 0:
+                                self.data_ruutu1[i].setStyleSheet("background-color: white;")
+                            if b == 1:
+                                self.data_ruutu2[i].setStyleSheet("background-color: white;")
+                            if b == 2:
+                                self.data_ruutu3[i].setStyleSheet("background-color: white;")
+                            if b == 3:
+                                self.data_ruutu4[i].setStyleSheet("background-color: white;")
+                            if b == 4:
+                                self.data_ruutu5[i].setStyleSheet("background-color: white;")
+                            if b == 5:
+                                self.data_ruutu6[i].setStyleSheet("background-color: white;")
+                            if b == 6:
+                                self.data_ruutu7[i].setStyleSheet("background-color: white;")
+                            if b == 7:
+                                self.data_ruutu8[i].setStyleSheet("background-color: white;")
 
-       
+                if len(data_lista) > i:
+                    self.data_ruutu1[i].setText(self.test_are_null(str(data_lista[i][0])))
+                    self.data_ruutu2[i].setText(self.test_are_null(str(data_lista[i][1])))
+                    self.data_ruutu3[i].setText(self.test_are_null(str(data_lista[i][2])))
+                    self.data_ruutu4[i].setText(self.test_are_null(str(data_lista[i][3])))
+                    self.data_ruutu5[i].setText(self.test_are_null(str(data_lista[i][4])))
+                    self.data_ruutu6[i].setText(self.test_are_null(str(data_lista[i][5])))
+                    self.data_ruutu7[i].setText(self.test_are_null(str(data_lista[i][6])))
+                    self.data_ruutu8[i].setText(self.test_are_null(str(data_lista[i][7])))
+
+
 
         QTimer.singleShot(100, self.update_data_loop)
 
@@ -488,23 +492,33 @@ class MainWindow(QMainWindow):
         self.btn_vayla_off.clicked.connect(self.vayla_off)
         self.btn_vayla_off.hide()
 
-        self.nollaus_txt = QLabel("Luetun datan nollaus",self)
+        self.nollaus_txt = QLabel("Luettu data",self)
         self.nollaus_txt.setGeometry(15,140,300,20)
         self.nollaus_txt.hide()
 
         self.btn_nollaus= QPushButton("Nollaa",self)
-        self.btn_nollaus.setGeometry(160,140,80,20)
+        self.btn_nollaus.setGeometry(210,140,80,20)
         self.btn_nollaus.clicked.connect(self.nollaus)
         self.btn_nollaus.hide()
 
-        self.tutkinta_txt = QLabel("Datan tutkiminen",self)
-        self.tutkinta_txt.setGeometry(15,170,300,20)
-        self.tutkinta_txt.hide()
-
         self.btn_tutkinta= QPushButton("Tutki",self)
-        self.btn_tutkinta.setGeometry(160,170,80,20)
+        self.btn_tutkinta.setGeometry(120,140,80,20)
         self.btn_tutkinta.clicked.connect(self.aloita_tutkinta)
         self.btn_tutkinta.hide()
+
+        self.tuonti_txt = QLabel("Laitteiden",self)
+        self.tuonti_txt.setGeometry(15,170,300,20)
+        self.tuonti_txt.hide()
+
+        self.btn_avaa= QPushButton("Tuonti",self)
+        self.btn_avaa.setGeometry(210,170,80,20)
+        self.btn_avaa.clicked.connect(self.nollaus)
+        self.btn_avaa.hide()
+
+        self.btn_tallenna= QPushButton("Vienti",self)
+        self.btn_tallenna.setGeometry(120,170,80,20)
+        self.btn_tallenna.clicked.connect(self.aloita_tutkinta)
+        self.btn_tallenna.hide()
 
         self.txt_aktiv = QLabel("Väylä ei aktiivinen",self)
         self.txt_aktiv.setStyleSheet("color:black; background-color:red; padding:2px;")
@@ -536,7 +550,7 @@ class MainWindow(QMainWindow):
         self.label.setPixmap(pixmap)
         self.label.setGeometry(40, -30, pixmap.width(), pixmap.height())
 
-        self.setWindowTitle("CanbusHaistelija v0.1")
+        self.setWindowTitle("CanbusHaistelija v0.2")
         self.txt = QLabel("Etsitään tuettua laitetta... \nJärjestelmä käynnistyy kun laite löytyy.", self) #luodaan tekstielementti
         self.txt.setGeometry(10,170,300,40)
         self.txt.setStyleSheet("color: white;")
@@ -641,6 +655,12 @@ class MainWindow(QMainWindow):
         global old_data2 
         global old_data3 
         global old_data4 
+
+        global tutkinta_kaynnissa #suljetaan ettei ikkuna yritä etsiä tyhjältä listalta
+        if tutkinta_kaynnissa:
+            self.tutkinta_ikkuna.close()
+            tutkinta_kaynnissa = False
+
         pid_lista = []
         data_lista = []
         data_update_lista = []
@@ -650,10 +670,7 @@ class MainWindow(QMainWindow):
         old_data4 = []
 
         #jos tutkinta käynnissä ikkuna uudelleen avataan
-        global tutkinta_kaynnissa
-        if tutkinta_kaynnissa:
-            tutkinta_kaynnissa = False
-            self.tutkinta_ikkuna.close()
+        
 
     def vayla_on(self):
         print("Väylä painettu päälle")
@@ -788,12 +805,14 @@ class MainWindow(QMainWindow):
         self.btn_nollaus.show()
         self.nollaus_txt.show()
         self.btn_tutkinta.show()
-        self.tutkinta_txt.show()
+        self.tuonti_txt.show()
         self.txt_aktiv.show()
         self.vaihda_txt.show()
         self.btn_vaihda_bin.show()
         self.btn_vaihda_hex.show()
         self.btn_vaihda_int.show()
+        self.btn_avaa.show()
+        self.btn_tallenna.show()
         #for i in range(len(self.ruudut)):
         #    for a in range(len(self.ruudut[i])):
         #        print(f"{i} - {a}")
