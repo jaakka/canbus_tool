@@ -19,6 +19,7 @@ total_msg_top = 0
 vaylanluku = True
 tutkinta_kaynnissa = False
 
+missa_muodossa = 0
 
 nimike_lista = []
 pid_lista = []
@@ -84,18 +85,171 @@ class yksiloityikkuna(QMainWindow):
     def __init__(self,index):
         super().__init__()
         self.setGeometry(600,460,320,220)
-
+        self.index = index
         self.setWindowTitle(str(nimike_lista[index])+" tarkkailu [pid 0x"+str(pid_lista[index])+"]")
         self.setWindowIcon(QIcon(str(os.path.dirname(os.path.abspath(__file__)))+"\images\device.png"))
 
         # Aseta taustaväri
         self.setAutoFillBackground(True)
         p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.darkGray)  # Voit vaihtaa taustavärin haluamaksesi
+        p.setColor(self.backgroundRole(), Qt.darkGray) 
         self.setPalette(p)
 
+        self.ruututxt = []
+
+        for y in range(6):
+            vaakarivi = []
+            for x in range(8):
+
+                if y == 0:
+                    frame = QFrame(self)
+                    frame.setFrameShape(QFrame.Box)  # Asetetaan laatikon tyyli
+                    frame.setLineWidth(1)  
+                    frame.setGeometry(40*x,100+20*y,40,21)
+                    frame.setStyleSheet("background-color: lightgray;")
+                    data_txt = QLabel(str(x+1),self) #
+                    data_txt.setGeometry(40*x,100,40,21)
+                else:
+                    data_txt = QLabel("-",self) #
+                    data_txt.setStyleSheet("background-color: white;")
+                    data_txt.setGeometry(40*x,100+20*y,40,21)
+                    vaakarivi.append(data_txt)
+
+            if y != 0:
+                self.ruututxt.append(vaakarivi)
+
+            self.nimilaatikko = QLineEdit(self)
+            self.nimilaatikko.setText(str(nimike_lista[index]))
+            self.nimilaatikko.textChanged.connect(self.rename)
+            self.nimilaatikko.setGeometry(40,40,100,20)
+
+            self.nimitxt = QLabel("Laitteen nimi",self)
+            self.nimitxt.setGeometry(40,20,100,20)
+
+            self.nollaustxt = QLabel("Nollaa väliaikainen\n kerätty data",self)
+            self.nollaustxt.setGeometry(200,0,100,40)
+
+            self.nollausbtn = QPushButton("Nollaa",self)
+            self.nollausbtn.clicked.connect(self.reset)
+            self.nollausbtn.setGeometry(200,40,100,20)
 
         self.show()
+        QTimer.singleShot(50, self.update_data_loop)
+    
+    def reset(self):
+        global data_lista, data_update_lista, old_data1, old_data2, old_data3, old_data4 
+        data_update_lista[self.index] = [False,False,False,False,False,False,False,False]
+        data_lista[self.index] = [-1,-1,-1,-1,-1,-1,-1,-1]
+        old_data1[self.index] = [-1,-1,-1,-1,-1,-1,-1,-1]
+        old_data2[self.index] = [-1,-1,-1,-1,-1,-1,-1,-1]
+        old_data3[self.index] = [-1,-1,-1,-1,-1,-1,-1,-1]
+        old_data4[self.index] = [-1,-1,-1,-1,-1,-1,-1,-1]
+
+    def rename(self):
+        global nimike_lista 
+        nimike_lista[self.index] = self.nimilaatikko.text()
+        self.setWindowTitle(str(nimike_lista[self.index])+" tarkkailu [pid 0x"+str(pid_lista[self.index])+"]")
+        
+        
+    def test_are_null(self,value:str):
+        if value == "-1":
+            return ""
+        else:
+            if missa_muodossa == 0:
+                return value
+            elif missa_muodossa == 1:
+                return str(bin(int(value, 16)))
+            else:
+                return str(int(value, 16))
+
+    def update_data_loop(self):
+        if data_update_lista[self.index][0]:
+            self.ruututxt[0][0].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][0].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][1]:
+            self.ruututxt[0][1].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][1].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][2]:
+            self.ruututxt[0][2].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][2].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][3]:
+            self.ruututxt[0][3].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][3].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][4]:
+            self.ruututxt[0][4].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][4].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][5]:
+            self.ruututxt[0][5].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][5].setStyleSheet("background-color: white;")
+        
+        if data_update_lista[self.index][6]:
+            self.ruututxt[0][6].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][6].setStyleSheet("background-color: white;")
+
+        if data_update_lista[self.index][7]:
+            self.ruututxt[0][7].setStyleSheet("background-color: lime;")
+        else:
+            self.ruututxt[0][7].setStyleSheet("background-color: white;")
+
+        self.ruututxt[0][0].setText(self.test_are_null(str(data_lista[self.index][0])))
+        self.ruututxt[0][1].setText(self.test_are_null(str(data_lista[self.index][1])))
+        self.ruututxt[0][2].setText(self.test_are_null(str(data_lista[self.index][2])))
+        self.ruututxt[0][3].setText(self.test_are_null(str(data_lista[self.index][3])))
+        self.ruututxt[0][4].setText(self.test_are_null(str(data_lista[self.index][4])))
+        self.ruututxt[0][5].setText(self.test_are_null(str(data_lista[self.index][5])))
+        self.ruututxt[0][6].setText(self.test_are_null(str(data_lista[self.index][6])))
+        self.ruututxt[0][7].setText(self.test_are_null(str(data_lista[self.index][7])))
+
+        self.ruututxt[1][0].setText(self.test_are_null(str(old_data1[self.index][0])))
+        self.ruututxt[1][1].setText(self.test_are_null(str(old_data1[self.index][1])))
+        self.ruututxt[1][2].setText(self.test_are_null(str(old_data1[self.index][2])))
+        self.ruututxt[1][3].setText(self.test_are_null(str(old_data1[self.index][3])))
+        self.ruututxt[1][4].setText(self.test_are_null(str(old_data1[self.index][4])))
+        self.ruututxt[1][5].setText(self.test_are_null(str(old_data1[self.index][5])))
+        self.ruututxt[1][6].setText(self.test_are_null(str(old_data1[self.index][6])))
+        self.ruututxt[1][7].setText(self.test_are_null(str(old_data1[self.index][7])))
+
+        self.ruututxt[2][0].setText(self.test_are_null(str(old_data2[self.index][0])))
+        self.ruututxt[2][1].setText(self.test_are_null(str(old_data2[self.index][1])))
+        self.ruututxt[2][2].setText(self.test_are_null(str(old_data2[self.index][2])))
+        self.ruututxt[2][3].setText(self.test_are_null(str(old_data2[self.index][3])))
+        self.ruututxt[2][4].setText(self.test_are_null(str(old_data2[self.index][4])))
+        self.ruututxt[2][5].setText(self.test_are_null(str(old_data2[self.index][5])))
+        self.ruututxt[2][6].setText(self.test_are_null(str(old_data2[self.index][6])))
+        self.ruututxt[2][7].setText(self.test_are_null(str(old_data2[self.index][7])))
+
+        self.ruututxt[3][0].setText(self.test_are_null(str(old_data3[self.index][0])))
+        self.ruututxt[3][1].setText(self.test_are_null(str(old_data3[self.index][1])))
+        self.ruututxt[3][2].setText(self.test_are_null(str(old_data3[self.index][2])))
+        self.ruututxt[3][3].setText(self.test_are_null(str(old_data3[self.index][3])))
+        self.ruututxt[3][4].setText(self.test_are_null(str(old_data3[self.index][4])))
+        self.ruututxt[3][5].setText(self.test_are_null(str(old_data3[self.index][5])))
+        self.ruututxt[3][6].setText(self.test_are_null(str(old_data3[self.index][6])))
+        self.ruututxt[3][7].setText(self.test_are_null(str(old_data3[self.index][7])))
+
+        self.ruututxt[4][0].setText(self.test_are_null(str(old_data4[self.index][0])))
+        self.ruututxt[4][1].setText(self.test_are_null(str(old_data4[self.index][1])))
+        self.ruututxt[4][2].setText(self.test_are_null(str(old_data4[self.index][2])))
+        self.ruututxt[4][3].setText(self.test_are_null(str(old_data4[self.index][3])))
+        self.ruututxt[4][4].setText(self.test_are_null(str(old_data4[self.index][4])))
+        self.ruututxt[4][5].setText(self.test_are_null(str(old_data4[self.index][5])))
+        self.ruututxt[4][6].setText(self.test_are_null(str(old_data4[self.index][6])))
+        self.ruututxt[4][7].setText(self.test_are_null(str(old_data4[self.index][7])))
+
+
+        QTimer.singleShot(10, self.update_data_loop)
 
 class Tutkinta(QMainWindow):
     def __init__(self):
@@ -136,6 +290,7 @@ class Tutkinta(QMainWindow):
             self.tutkinta_txt = QLabel(otsikot[x],self)
             self.tutkinta_txt.setGeometry(5+40*x,0,40,21)
 
+            
 
             for y in range(len(pid_lista)):
 
@@ -163,35 +318,35 @@ class Tutkinta(QMainWindow):
                     nimi_txt.setGeometry(3,20+20*y,40,21)
                     self.nimi_lista.append(nimi_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][0]),self) #
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][0])),self) #
                     data_txt.setGeometry(82,20+20*y,40,21)
                     self.data_ruutu1.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][1]),self) #str(data_lista[(y-1)][1])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][1])),self) #str(data_lista[(y-1)][1])
                     data_txt.setGeometry(82+40,20+20*y,40,21)
                     self.data_ruutu2.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][2]),self) #str(data_lista[(y-1)][2])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][2])),self) #str(data_lista[(y-1)][2])
                     data_txt.setGeometry(82+40*2,20+20*y,40,21)
                     self.data_ruutu3.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][3]),self) #str(data_lista[(y-1)][3])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][3])),self) #str(data_lista[(y-1)][3])
                     data_txt.setGeometry(82+40*3,20+20*y,40,21)
                     self.data_ruutu4.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][4]),self) #str(data_lista[(y-1)][4])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][4])),self) #str(data_lista[(y-1)][4])
                     data_txt.setGeometry(82+40*4,20+20*y,40,21)
                     self.data_ruutu5.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][5]),self) #str(data_lista[(y-1)][5])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][5])),self) #str(data_lista[(y-1)][5])
                     data_txt.setGeometry(82+40*5,20+20*y,40,21)
                     self.data_ruutu6.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][6]),self) #str(data_lista[(y-1)][6])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][6])),self) #str(data_lista[(y-1)][6])
                     data_txt.setGeometry(82+40*6,20+20*y,40,21)
                     self.data_ruutu7.append(data_txt)
 
-                    data_txt = QLabel(str(data_lista[(y)][7]),self) # str(data_lista[(y-1)][7])
+                    data_txt = QLabel(self.test_are_null(str(data_lista[(y)][7])),self) # str(data_lista[(y-1)][7])
                     data_txt.setGeometry(82+40*7,20+20*y,40,21)
                     self.data_ruutu8.append(data_txt)
                     
@@ -200,11 +355,23 @@ class Tutkinta(QMainWindow):
                 #frame.hide()
                 
         QTimer.singleShot(100, self.update_data_loop)
+        self.alaikkunat = []
         self.show()
     
+    def test_are_null(self,value:str):
+        if value == "-1":
+            return ""
+        else:
+            if missa_muodossa == 0:
+                return value
+            elif missa_muodossa == 1:
+                return str(bin(int(value, 16)))
+            else:
+                return str(int(value, 16))
+
     def tutki_laitetta(self,laite):
         print("Avataan laitetta indeksillä "+str(laite))
-        self.uusi_ikkuna = yksiloityikkuna(laite)
+        self.alaikkunat.append(yksiloityikkuna(laite))
 
     def closeEvent(self, event):
         global tutkinta_kaynnissa
@@ -259,14 +426,14 @@ class Tutkinta(QMainWindow):
                     if b == 7:
                         self.data_ruutu8[i].setStyleSheet("background-color: white;")
 
-            self.data_ruutu1[i].setText(str(data_lista[i][0]))
-            self.data_ruutu2[i].setText(str(data_lista[i][1]))
-            self.data_ruutu3[i].setText(str(data_lista[i][2]))
-            self.data_ruutu4[i].setText(str(data_lista[i][3]))
-            self.data_ruutu5[i].setText(str(data_lista[i][4]))
-            self.data_ruutu6[i].setText(str(data_lista[i][5]))
-            self.data_ruutu7[i].setText(str(data_lista[i][6]))
-            self.data_ruutu8[i].setText(str(data_lista[i][7]))
+            self.data_ruutu1[i].setText(self.test_are_null(str(data_lista[i][0])))
+            self.data_ruutu2[i].setText(self.test_are_null(str(data_lista[i][1])))
+            self.data_ruutu3[i].setText(self.test_are_null(str(data_lista[i][2])))
+            self.data_ruutu4[i].setText(self.test_are_null(str(data_lista[i][3])))
+            self.data_ruutu5[i].setText(self.test_are_null(str(data_lista[i][4])))
+            self.data_ruutu6[i].setText(self.test_are_null(str(data_lista[i][5])))
+            self.data_ruutu7[i].setText(self.test_are_null(str(data_lista[i][6])))
+            self.data_ruutu8[i].setText(self.test_are_null(str(data_lista[i][7])))
 
        
 
@@ -339,6 +506,31 @@ class MainWindow(QMainWindow):
         self.btn_tutkinta.clicked.connect(self.aloita_tutkinta)
         self.btn_tutkinta.hide()
 
+        self.txt_aktiv = QLabel("Väylä ei aktiivinen",self)
+        self.txt_aktiv.setStyleSheet("color:black; background-color:red; padding:2px;")
+        self.txt_aktiv.setGeometry(10,210,100,20)
+        self.txt_aktiv.hide()
+
+        self.vaihda_txt = QLabel("Datan muoto",self)
+        self.vaihda_txt.setGeometry(130,193,180,20)
+        self.vaihda_txt.hide()
+
+        self.btn_vaihda_hex= QPushButton("HEX",self)
+        self.btn_vaihda_hex.setGeometry(130,210,60,20)
+        self.btn_vaihda_hex.setDisabled(True)
+        self.btn_vaihda_hex.clicked.connect(self.vaihda_hex)
+        self.btn_vaihda_hex.hide()
+
+        self.btn_vaihda_bin= QPushButton("BIN",self)
+        self.btn_vaihda_bin.setGeometry(130+60,210,60,20)
+        self.btn_vaihda_bin.clicked.connect(self.vaihda_bin)
+        self.btn_vaihda_bin.hide()
+
+        self.btn_vaihda_int= QPushButton("INT",self)
+        self.btn_vaihda_int.setGeometry(130+60*2,210,60,20)
+        self.btn_vaihda_int.clicked.connect(self.vaihda_int)
+        self.btn_vaihda_int.hide()
+
         self.label = QLabel(self)
         pixmap = QPixmap(str(os.path.dirname(os.path.abspath(__file__)))+"\images\canbus_tool.jpg")
         self.label.setPixmap(pixmap)
@@ -401,6 +593,30 @@ class MainWindow(QMainWindow):
 
         QTimer.singleShot(1000, self.saako_avata_listan_loop)
     
+    def vaihda_hex(self):
+        global missa_muodossa
+        missa_muodossa = 0
+        self.btn_vaihda_hex.setDisabled(True)
+        self.btn_vaihda_bin.setDisabled(False)
+        self.btn_vaihda_int.setDisabled(False)
+        print("Datan muoto vaihdettiin hex muotoon.")
+    
+    def vaihda_bin(self):
+        global missa_muodossa
+        missa_muodossa = 1
+        self.btn_vaihda_bin.setDisabled(True)
+        self.btn_vaihda_int.setDisabled(False)
+        self.btn_vaihda_hex.setDisabled(False)
+        print("Datan muoto vaihdettiin bin muotoon.")
+    
+    def vaihda_int(self):
+        global missa_muodossa
+        missa_muodossa = 2
+        self.btn_vaihda_int.setDisabled(True)
+        self.btn_vaihda_hex.setDisabled(False)
+        self.btn_vaihda_bin.setDisabled(False)
+        print("Datan muoto vaihdettiin int muotoon.")
+
     def saako_avata_listan_loop(self):
         if tutkinta_kaynnissa:
             self.btn_tutkinta.setDisabled(True)
@@ -457,6 +673,12 @@ class MainWindow(QMainWindow):
         nopeus = self.dropdown.currentText()
         self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s \n Laitetunnisteita löytynyt: "+str(len(pid_lista))+"kpl")
         
+        if total_msg_top>0:
+            self.txt_aktiv.setText("Väylä aktiivinen")
+            self.txt_aktiv.setStyleSheet("color:black; background-color:lime; padding:2px;")
+        else:
+            self.txt_aktiv.setText("Väylä ei aktiivinen")
+            self.txt_aktiv.setStyleSheet("color:black; background-color:red; padding:2px;")
 
         QTimer.singleShot(100, self.aika_tekstin_paivittaja)
 
@@ -567,7 +789,11 @@ class MainWindow(QMainWindow):
         self.nollaus_txt.show()
         self.btn_tutkinta.show()
         self.tutkinta_txt.show()
-        
+        self.txt_aktiv.show()
+        self.vaihda_txt.show()
+        self.btn_vaihda_bin.show()
+        self.btn_vaihda_hex.show()
+        self.btn_vaihda_int.show()
         #for i in range(len(self.ruudut)):
         #    for a in range(len(self.ruudut[i])):
         #        print(f"{i} - {a}")
