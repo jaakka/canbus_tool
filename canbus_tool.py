@@ -8,7 +8,8 @@ from PySide6.QtGui import QPixmap,QIcon, QColor, QPainter
 import os
 import threading
 from functools import partial # tämä sallii että napin connect toiminnon yhteydessä voidaan antaa argumentti
-
+from tkinter import filedialog #tiedostojen käsittelyyn
+import json
 
 test = 0
 tyotila = 0
@@ -512,12 +513,12 @@ class MainWindow(QMainWindow):
 
         self.btn_avaa= QPushButton("Tuonti",self)
         self.btn_avaa.setGeometry(210,170,80,20)
-        self.btn_avaa.clicked.connect(self.nollaus)
+        self.btn_avaa.clicked.connect(self.tuo)
         self.btn_avaa.hide()
 
         self.btn_tallenna= QPushButton("Vienti",self)
         self.btn_tallenna.setGeometry(120,170,80,20)
-        self.btn_tallenna.clicked.connect(self.aloita_tutkinta)
+        self.btn_tallenna.clicked.connect(self.vie)
         self.btn_tallenna.hide()
 
         self.txt_aktiv = QLabel("Väylä ei aktiivinen",self)
@@ -607,6 +608,57 @@ class MainWindow(QMainWindow):
 
         QTimer.singleShot(1000, self.saako_avata_listan_loop)
     
+    def tuo(self):
+        global pid_lista, nimike_lista, data_lista, old_data1, old_data2, old_data3, old_data4, data_update_lista
+        tiedostonimi = filedialog.askopenfilename(filetypes=[("Haistelijatiedostot", "*.haju")]) # Pyytää käyttäjää valitsemaan tiedoston
+        if tiedostonimi:
+            #tähän tulee tiedoston lukeminen
+            f = open(str(tiedostonimi), "r")     #tiedoston avaus luku tilassa
+            saatu_data = json.loads(f.read())            #tiedoston luku ja muunto str to array
+            f.close() 
+            if len(saatu_data) == 2:
+                total_new_items = len(saatu_data[0]) # otetaan pid:it vastaan
+                
+                # jos lisätään laitteen jälkikäteen
+                for i in range(total_new_items):
+                    oli_jo_ind = -1
+
+                    for a in range(len(pid_lista)):
+
+                        if pid_lista[a] == saatu_data[0][i]:
+                            oli_jo_ind = a
+
+                    if oli_jo_ind == -1:
+
+                        pid_lista.append(saatu_data[0][i]) 
+                        nimike_lista.append(saatu_data[1][i])
+                        data_lista.append([-1,-1,-1,-1,-1,-1,-1,-1])
+                        old_data1.append([-1,-1,-1,-1,-1,-1,-1,-1])
+                        old_data2.append([-1,-1,-1,-1,-1,-1,-1,-1])
+                        old_data3.append([-1,-1,-1,-1,-1,-1,-1,-1])
+                        old_data4.append([-1,-1,-1,-1,-1,-1,-1,-1])
+                        data_update_lista.append([False,False,False,False,False,False,False,False])
+                    else:
+                        nimike_lista[oli_jo_ind] = saatu_data[1][i] #nimetään jo olemassa oleva pid listan mukaan
+            else:
+                print("Dataa ei ollut tai se oli väärässä muodossa.")
+        else:
+            print("Tuonti peruttiin")
+
+    def vie(self):
+        tiedostonimi = filedialog.asksaveasfilename(filetypes=[("Haistelijatiedostot", "*.haju")])
+        if tiedostonimi:
+            if ".haju" in tiedostonimi:
+                pass
+            else:
+                tiedostonimi = str(tiedostonimi)+".haju" #tarkastetaan että tulee tiedostopääte
+
+            f = open(str(tiedostonimi), "w")     #tiedoston avaus kirjoitus tilassa
+            f.write(json.dumps([pid_lista,nimike_lista]))            #tiedoston kirjoitus ja muunto str to array
+            f.close()    
+        else:
+            print("Vienti peruttiin")
+
     def vaihda_hex(self):
         global missa_muodossa
         missa_muodossa = 0
