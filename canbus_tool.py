@@ -22,6 +22,8 @@ tutkinta_kaynnissa = False
 
 missa_muodossa = 0
 
+sendable_items = []
+
 nimike_lista = []
 pid_lista = []
 data_lista = []
@@ -607,6 +609,10 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(1000, self.etsinta)
 
         QTimer.singleShot(1000, self.saako_avata_listan_loop)
+
+        self.time_to_alive = 0
+
+    
     
     def tuo(self):
         global pid_lista, nimike_lista, data_lista, old_data1, old_data2, old_data3, old_data4, data_update_lista
@@ -645,6 +651,19 @@ class MainWindow(QMainWindow):
         else:
             print("Tuonti peruttiin")
 
+    def rakenna_tallennettava_data(self):
+        saveable_pids = []
+        saveable_aliases = []
+
+        for i in range(len(nimike_lista)):
+            if "Laite" in nimike_lista[i]:
+                pass #tarkistetaan että oletusnimiä ei tallenneta turhaa
+            else:
+                saveable_aliases.append(nimike_lista[i])
+                saveable_pids.append(pid_lista[i])
+
+        return [saveable_pids,saveable_aliases]
+
     def vie(self):
         tiedostonimi = filedialog.asksaveasfilename(filetypes=[("Haistelijatiedostot", "*.haju")])
         if tiedostonimi:
@@ -654,7 +673,7 @@ class MainWindow(QMainWindow):
                 tiedostonimi = str(tiedostonimi)+".haju" #tarkastetaan että tulee tiedostopääte
 
             f = open(str(tiedostonimi), "w")     #tiedoston avaus kirjoitus tilassa
-            f.write(json.dumps([pid_lista,nimike_lista]))            #tiedoston kirjoitus ja muunto str to array
+            f.write(json.dumps(self.rakenna_tallennettava_data()))            #tiedoston kirjoitus ja muunto str to array
             f.close()    
         else:
             print("Vienti peruttiin")
@@ -720,7 +739,7 @@ class MainWindow(QMainWindow):
         old_data2 = []
         old_data3 = []
         old_data4 = []
-
+        
         #jos tutkinta käynnissä ikkuna uudelleen avataan
         
 
@@ -739,6 +758,9 @@ class MainWindow(QMainWindow):
         vaylanluku = False
 
     def aika_tekstin_paivittaja(self):
+
+        global sendable_items
+
         nopeus = self.dropdown.currentText()
         self.txt.setText("Yhdistetty: VäyläTyökalu v1 ("+str(self.laite)+")\n Väylänopeus:"+str(nopeus) + "\n Dataliikenteen realiaikainen nopeus: "+str(total_msg_top)+" Msg/s \n Laitetunnisteita löytynyt: "+str(len(pid_lista))+"kpl")
         
@@ -749,7 +771,14 @@ class MainWindow(QMainWindow):
             self.txt_aktiv.setText("Väylä ei aktiivinen")
             self.txt_aktiv.setStyleSheet("color:black; background-color:red; padding:2px;")
 
-        QTimer.singleShot(100, self.aika_tekstin_paivittaja)
+        if tyotila == 3 or tyotila == 4: #vaikka väliaikainen testi että ollaaks valmiita
+            if self.time_to_alive > 96: # 100 * 10 on 1000ms eli 1 s
+                self.time_to_alive = 0
+                sendable_items.append(["0x0","0x15","0x00","0x00","0x00","0x00","0x00"])
+            else:
+                self.time_to_alive += 1
+
+        QTimer.singleShot(10, self.aika_tekstin_paivittaja) #oli 100
 
     def simu_on(self):
         print("Painettiin simulaattori päälle.")
@@ -914,6 +943,17 @@ def muunna_data(data):
             palautettava_data.append(data[i])
     return palautettava_data
 
+def lahetysmuotoon(data):
+    txt = ""
+    for i in range(len(data)):
+        if txt == "":
+            txt = str(data[i])
+        else:
+            txt = txt + "," + str(data[i])
+    return txt.encode()
+
+
+
 def serial_teht():
     global total_msg
     global test
@@ -949,15 +989,35 @@ def serial_teht():
             tyotila = 3
             write_mode = False
 
+        if tyotila == 4: #viestin lähetys          
+            
+            write_mode = True
+            print(sendable_items)
+            for a in range(len(sendable_items)):
+                for b in range(5):
+                    ser.write(lahetysmuotoon(sendable_items[a]))
+                sendable_items.pop(a) #poistetaan jo lähettetty
+            
+            #time.sleep(1)
+                
+            
+            print("Lähetetään pyydetyt viestit")
+            tyotila = 3
+            write_mode = False
+
         if tyotila == 3 and write_mode == False: #väylän luku täysiä
-            if ser.in_waiting > 0:
-                data = ser.readline().decode('utf-8').rstrip()
-                total_msg+=1
-                if vaylanluku:
-                    saatu_data = data.split()
-                    if len(saatu_data)>3:
-                        kasittele_data(saatu_data[1], muunna_data(saatu_data))
-                    #print(saatu_data)
+            if len(sendable_items) < 1:
+                if ser.in_waiting > 0:
+                    data = ser.readline().decode('utf-8').rstrip()
+                    total_msg+=1
+                    if vaylanluku:
+                        saatu_data = data.split()
+                        if len(saatu_data)>3:
+                            kasittele_data(saatu_data[1], muunna_data(saatu_data))
+                        #print(saatu_data)
+            else:
+                tyotila = 4
+                
         #print("työtila:"+str(tyotila))
 
 if __name__ == "__main__":
